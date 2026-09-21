@@ -1,0 +1,1006 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Giloo Creator Tools POC</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+  :root{
+    --bg:#121110; --bg-2:#171615; --surface:#1C1B19; --surface-2:#242220; --surface-3:#2C2A27;
+    --line:#2E2C29; --line-2:#3A3733;
+    --text:#F2EFE8; --muted:#A39E94; --dim:#6E6A63;
+    --accent:#EA2B40; --accent-2:#FF5A6C; --accent-dim:#2E1A1D;
+    --ok:#6FCF97; --warn:#F2B23E;
+    --sans:'Noto Sans TC',system-ui,-apple-system,sans-serif;
+    --mono:'IBM Plex Mono',ui-monospace,SFMono-Regular,Menlo,monospace;
+    --sidebar:256px; --panel:420px; --radius:14px;
+    color-scheme:dark;
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%}
+  body{margin:0;background:var(--bg);color:var(--text);font-family:var(--sans);font-size:14px;line-height:1.55;-webkit-font-smoothing:antialiased}
+  a{color:var(--accent-2);text-decoration:none}
+  button{font-family:inherit;font-size:inherit;color:inherit;cursor:pointer}
+  button:focus-visible,a:focus-visible,textarea:focus-visible,input:focus-visible{outline:2px solid var(--accent-2);outline-offset:2px}
+  h1,h2,h3{margin:0;text-wrap:balance;font-weight:700}
+  .num{font-family:var(--mono);font-variant-numeric:tabular-nums}
+  .hidden{display:none!important}
+
+  /* ---------- shell ---------- */
+  .shell{display:flex;height:100%;min-height:0}
+  .sidebar{width:var(--sidebar);flex-shrink:0;background:var(--bg-2);border-right:1px solid var(--line);display:flex;flex-direction:column;padding:16px 12px;gap:2px;overflow-y:auto}
+  .brand{display:flex;align-items:center;gap:10px;padding:6px 8px 14px}
+  .brand-mark{width:28px;height:28px;border-radius:8px;background:var(--accent);flex-shrink:0}
+  .brand-name{font-weight:700;font-size:14px;flex-grow:1;white-space:nowrap}
+  .brand-tag{font-size:10px;letter-spacing:.08em;color:var(--dim);border:1px solid var(--line-2);border-radius:4px;padding:1px 5px}
+  .nav-btn{display:flex;align-items:center;gap:10px;width:100%;padding:10px 12px;border-radius:10px;border:0;background:transparent;text-align:left;color:var(--text)}
+  .nav-btn:hover{background:var(--surface-2)}
+  .nav-btn.primary{background:var(--surface-2);font-weight:500}
+  .nav-btn.active{background:var(--surface-3)}
+  .nav-btn .ico{width:24px;height:24px;border-radius:12px;background:var(--surface-3);display:flex;align-items:center;justify-content:center;color:var(--muted);flex-shrink:0}
+  .nav-btn.primary .ico{background:#3A3733;color:var(--text)}
+  .nav-btn .sub{font-size:11px;color:var(--dim);margin-left:auto}
+  .nav-sec{display:flex;align-items:center;justify-content:space-between;padding:16px 12px 4px;font-size:11px;letter-spacing:.06em;color:var(--dim)}
+  .chat-item{display:flex;flex-direction:column;gap:1px;width:100%;padding:8px 12px;border-radius:8px;border:0;background:transparent;text-align:left;color:var(--text)}
+  .chat-item:hover{background:var(--surface-2)}
+  .chat-item.active{background:var(--surface-3)}
+  .chat-item .t{font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .chat-item .s{font-size:11px;color:var(--dim)}
+  .chat-empty{padding:8px 12px;font-size:12px;color:var(--dim);line-height:1.6}
+  .credits{margin-top:auto;padding:12px 14px;border-radius:10px;background:var(--surface);display:flex;flex-direction:column;gap:2px}
+  .credits .l{font-size:11px;color:var(--muted)}
+  .credits .v{font-size:20px;font-weight:700}
+  .credits .v span{font-size:11px;font-weight:400;color:var(--muted)}
+  .account{display:flex;align-items:center;gap:10px;padding:10px 12px;font-size:13px;color:var(--muted)}
+  .avatar{width:24px;height:24px;border-radius:12px;background:var(--surface-3)}
+
+  .main{flex-grow:1;min-width:0;display:flex;flex-direction:column;overflow:hidden}
+  .topbar{display:none;align-items:center;gap:10px;padding:10px 16px;padding-top:calc(10px + env(safe-area-inset-top,0px));border-bottom:1px solid var(--line);background:var(--bg-2)}
+  .topbar .brand{padding:0;flex-grow:1}
+  .icon-btn{width:36px;height:36px;border-radius:18px;border:1px solid var(--line-2);background:transparent;display:inline-flex;align-items:center;justify-content:center;color:var(--text)}
+  .scroll{flex-grow:1;overflow-y:auto;min-height:0}
+  .page{max-width:1120px;margin:0 auto;padding:28px 40px 48px;display:flex;flex-direction:column;gap:28px}
+
+  /* ---------- product bar ---------- */
+  .eyebrow{display:flex;align-items:baseline;gap:10px;font-size:11px;letter-spacing:.06em;color:var(--dim)}
+  .eyebrow .n{color:var(--muted);letter-spacing:0;font-size:12px}
+  .products{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px}
+  .product{display:flex;align-items:center;gap:12px;padding:14px 14px;border-radius:12px;background:var(--surface);border:1px solid var(--line);color:var(--text);min-width:0;text-align:left;transition:border-color .15s,transform .15s}
+  .product:hover{border-color:var(--line-2);transform:translateY(-1px)}
+  .product.active{border-color:var(--accent)}
+  .product .ico{width:36px;height:36px;border-radius:10px;background:var(--accent-dim);color:var(--accent);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+  .product .tx{display:flex;flex-direction:column;gap:1px;min-width:0;flex-grow:1}
+  .product .nm{font-weight:700;font-size:14px;white-space:nowrap}
+  .product .ds{font-size:11px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .product .arr{color:var(--dim);flex-shrink:0}
+
+
+  /* ---------- top nav ---------- */
+  .topnav{display:flex;align-items:center;gap:2px;height:52px;padding:0 16px;padding-top:env(safe-area-inset-top,0px);border-bottom:1px solid var(--line);background:var(--bg);flex-shrink:0;overflow-x:auto;scrollbar-width:none}
+  .topnav::-webkit-scrollbar{display:none}
+  .topnav a{display:inline-flex;align-items:center;gap:6px;height:36px;padding:0 12px;border-radius:8px;color:var(--muted);font-size:14px;font-weight:500;white-space:nowrap}
+  .topnav a:hover{color:var(--text);background:var(--surface)}
+  .topnav a.on{color:var(--accent-2)}
+  .topnav .sep{width:1px;height:18px;background:var(--line-2);margin:0 6px;flex-shrink:0}
+  .topnav .badge{font-size:10px;font-weight:700;letter-spacing:.02em;padding:2px 6px;border-radius:4px;background:var(--accent);color:#fff;line-height:1.2}
+  .topnav .badge.free{background:var(--surface-3);color:var(--muted)}
+  .topnav .right{margin-left:auto;display:flex;align-items:center;gap:6px;padding-left:12px}
+  .topnav .right .icon-btn{width:34px;height:34px}
+
+  /* ---------- hero composer ---------- */
+  .hero{display:flex;flex-direction:column;align-items:center;gap:18px;padding-block:28px 4px}
+  .hero h1{font-size:30px;letter-spacing:-.01em;text-align:center}
+  .hero p{margin:0;color:var(--muted);text-align:center;max-width:56ch}
+  .composer{width:100%;max-width:880px;border-radius:18px;background:var(--surface);border:1px solid var(--line-2);padding:16px 16px 12px;display:flex;flex-direction:column;gap:12px;box-shadow:0 20px 60px -30px rgba(0,0,0,.8)}
+  .composer:focus-within{border-color:#4A4641}
+  .composer textarea{width:100%;min-height:52px;border:0;background:transparent;color:var(--text);font-size:16px;font-family:inherit;resize:none;outline:none;line-height:1.5}
+  .composer textarea::placeholder{color:var(--dim)}
+  .composer-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+  .chip{display:inline-flex;align-items:center;gap:6px;height:34px;padding:0 12px;border-radius:17px;border:1px solid var(--line-2);background:var(--surface-2);color:var(--text);font-size:13px}
+  .chip .k{color:var(--muted)}
+  .chip.ghost{border-style:dashed;background:transparent;color:var(--dim)}
+  .chip.tool{border-color:var(--accent);background:var(--accent-dim)}
+  .chip.tool .dot{width:6px;height:6px;border-radius:3px;background:var(--accent)}
+  .chip select{background:transparent;border:0;color:var(--text);font-family:inherit;font-size:13px;outline:none}
+  .chip select option{background:#1C1B19;color:#F2EFE8}
+  .spacer{flex-grow:1}
+  .link-btn{border:0;background:transparent;color:var(--muted);font-size:13px;padding:0 8px;height:34px;border-radius:17px}
+  .link-btn:hover{color:var(--text)}
+  .send{width:36px;height:36px;border-radius:18px;border:0;background:var(--accent);color:#fff;display:inline-flex;align-items:center;justify-content:center}
+  .send:hover{background:var(--accent-2)}
+  .send:disabled{background:var(--surface-3);color:var(--dim);cursor:not-allowed}
+  .tool-pick{display:flex;gap:6px;flex-wrap:wrap;justify-content:center}
+  .tool-pick button{height:30px;padding:0 12px;border-radius:15px;border:1px solid var(--line);background:transparent;color:var(--text);font-size:13px}
+  .tool-pick button:hover,.tool-pick button.on{border-color:var(--accent);background:var(--accent-dim)}
+  .tool-pick .lbl{font-size:12px;color:var(--dim);align-self:center;margin-right:4px}
+
+  /* ---------- scenarios ---------- */
+  .tabs{display:flex;align-items:center;gap:4px;flex-wrap:wrap}
+  .tabs button{height:32px;padding:0 14px;border-radius:16px;border:0;background:transparent;color:var(--muted);font-size:13px}
+  .tabs button.on{background:var(--surface-2);color:var(--text);font-weight:500}
+  .tabs .count{margin-left:auto;font-size:12px;color:var(--dim)}
+  .scen-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+  .scen{display:flex;flex-direction:column;gap:10px;padding:18px 16px;border-radius:var(--radius);background:var(--surface);border:1px solid var(--line);color:var(--text);text-align:left;min-height:140px;transition:border-color .15s,transform .15s}
+  .scen:hover{border-color:var(--line-2);transform:translateY(-1px)}
+  .scen .stage{font-size:11px;color:var(--dim)}
+  .scen .q{font-size:15px;font-weight:700;line-height:1.5;flex-grow:1}
+  .scen .uses{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--muted);flex-wrap:wrap}
+  .scen .uses i{width:6px;height:6px;border-radius:3px;background:var(--accent);flex-shrink:0}
+  .recent{display:flex;align-items:center;gap:12px;padding:14px 18px;border-radius:12px;background:var(--bg-2);border:1px solid var(--line);flex-wrap:wrap}
+  .recent .l{font-size:12px;color:var(--dim);flex-shrink:0}
+  .recent button{height:28px;padding:0 12px;border-radius:14px;border:1px solid var(--line);background:transparent;color:var(--muted);font-size:12px}
+  .recent button:hover{color:var(--text);border-color:var(--line-2)}
+
+  /* ---------- tool page ---------- */
+  .tool-hero{display:grid;grid-template-columns:1.1fr .9fr;gap:24px;align-items:start}
+  .tool-hero .big{display:flex;flex-direction:column;gap:14px}
+  .tool-hero .big .ico{width:48px;height:48px;border-radius:14px;background:var(--accent-dim);color:var(--accent);display:flex;align-items:center;justify-content:center}
+  .tool-hero h1{font-size:32px}
+  .kv{display:grid;grid-template-columns:auto 1fr;gap:6px 14px;font-size:14px}
+  .kv .k{color:var(--dim)}
+  .spec{display:flex;flex-direction:column;gap:10px;padding:18px;border-radius:var(--radius);background:var(--surface);border:1px solid var(--line)}
+  .spec h3{font-size:13px;color:var(--muted);font-weight:500}
+  .spec ol{margin:0;padding-left:18px;display:flex;flex-direction:column;gap:6px}
+  .spec .price{display:flex;align-items:baseline;gap:8px;padding-top:8px;border-top:1px solid var(--line)}
+  .spec .price b{font-size:20px}
+  .spec .price span{color:var(--muted);font-size:12px}
+  .section-h{display:flex;align-items:baseline;gap:12px}
+  .section-h h2{font-size:16px}
+  .section-h .d{font-size:12px;color:var(--dim)}
+
+  /* ---------- chat page ---------- */
+  .chatwrap{display:flex;height:100%;min-height:0}
+  .chatcol{flex-grow:1;min-width:0;display:flex;flex-direction:column;border-right:1px solid var(--line)}
+  .chat-top{height:54px;padding:0 24px;display:flex;align-items:center;gap:8px;border-bottom:1px solid var(--line);font-size:13px;flex-shrink:0;overflow-x:auto}
+  .chat-top .chip{height:30px;padding:0 10px}
+  .chat-top .st{margin-left:auto;color:var(--dim);white-space:nowrap}
+  .chat-top .st.ok{color:var(--ok)}
+  .msgs{flex-grow:1;overflow-y:auto;padding:24px 24px 8px;display:flex;flex-direction:column;gap:18px}
+  .msg{display:flex;gap:12px;max-width:760px}
+  .msg.user{align-self:flex-end;max-width:560px}
+  .msg.user .bubble{padding:12px 16px;border-radius:16px 16px 4px 16px;background:var(--surface-3);line-height:1.6}
+  .msg .av{width:28px;height:28px;border-radius:8px;background:var(--accent);flex-shrink:0}
+  .msg .body{display:flex;flex-direction:column;gap:12px;flex-grow:1;min-width:0;line-height:1.7}
+  .msg .body p{margin:0}
+  .card{border-radius:var(--radius);background:var(--surface);border:1px solid var(--line);display:flex;flex-direction:column;overflow:hidden}
+  .card-sec{padding:16px 18px;display:flex;flex-direction:column;gap:12px;border-bottom:1px solid var(--line)}
+  .card-sec:last-child{border-bottom:0}
+  .step{display:flex;align-items:center;gap:10px;font-weight:700}
+  .step .n{width:22px;height:22px;border-radius:11px;background:var(--accent);color:#fff;font-size:12px;display:flex;align-items:center;justify-content:center}
+  .file{display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:10px;background:var(--surface-2)}
+  .file .fi{width:34px;height:34px;border-radius:8px;background:var(--surface-3);display:flex;align-items:center;justify-content:center;color:var(--muted);flex-shrink:0}
+  .file .fn{font-weight:500}
+  .file .fm{font-size:12px;color:var(--muted)}
+  .file .ok{margin-left:auto;font-size:12px;color:var(--ok);white-space:nowrap}
+  .opts{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+  .opt{height:32px;padding:0 12px;border-radius:16px;border:1px solid var(--line-2);background:var(--surface-2);color:var(--muted);font-size:13px;display:inline-flex;align-items:center;gap:6px}
+  .opt.on{border-color:var(--accent);background:var(--accent-dim);color:var(--text)}
+  .opt input{margin:0}
+  .opt-big{flex:1 1 140px;padding:12px 14px;border-radius:10px;background:var(--surface-2);border:1px solid var(--line-2);display:flex;flex-direction:column;gap:3px;text-align:left;color:var(--muted)}
+  .opt-big b{color:var(--text)}
+  .opt-big.on{border-color:var(--accent);background:var(--accent-dim);color:var(--muted)}
+  .opt-big.on b{color:var(--text)}
+  .field{display:flex;flex-direction:column;gap:6px}
+  .field label{font-size:12px;color:var(--muted)}
+  .field input,.field textarea{width:100%;padding:10px 12px;border-radius:10px;border:1px solid var(--line-2);background:var(--surface-2);color:var(--text);font-family:inherit;font-size:14px}
+  .card-foot{padding:14px 18px;background:var(--bg-2);display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+  .card-foot .est b{font-size:16px}
+  .card-foot .est span{font-size:12px;color:var(--muted)}
+  .card-foot .est small{display:block;font-size:12px;color:var(--muted)}
+  .btn{height:40px;padding:0 18px;border-radius:20px;border:1px solid var(--line-2);background:transparent;color:var(--text);font-size:14px;display:inline-flex;align-items:center;gap:6px}
+  .btn:hover{border-color:#4A4641}
+  .btn.primary{background:var(--accent);border-color:var(--accent);color:#fff;font-weight:700}
+  .btn.primary:hover{background:var(--accent-2)}
+  .btn.sm{height:32px;padding:0 14px;font-size:13px}
+  .confirmed{display:flex;align-items:center;gap:12px;padding:12px 16px;border-radius:12px;background:var(--surface);border:1px solid var(--line);font-size:13px;color:var(--muted);flex-wrap:wrap}
+  .confirmed .ok{color:var(--ok)}
+  .confirmed b{color:var(--text);font-weight:500}
+  .progress{display:flex;flex-direction:column;gap:8px;padding:14px 16px;border-radius:12px;background:var(--surface);border:1px solid var(--line)}
+  .progress .row{display:flex;align-items:center;gap:10px;font-size:13px;color:var(--dim)}
+  .progress .row.done{color:var(--muted)}
+  .progress .row.done i{background:var(--ok)}
+  .progress .row.now{color:var(--text)}
+  .progress .row.now i{background:var(--accent);animation:pulse 1s infinite}
+  .progress .row i{width:8px;height:8px;border-radius:4px;background:var(--line-2);flex-shrink:0}
+  @keyframes pulse{50%{opacity:.3}}
+  .qs{display:flex;flex-direction:column;gap:6px}
+  .qs div{display:flex;gap:8px}
+  .qs span{color:var(--warn);flex-shrink:0;font-weight:700}
+  .nexts{display:flex;gap:8px;flex-wrap:wrap}
+  .nexts button{height:32px;padding:0 14px;border-radius:16px;border:1px solid var(--line-2);background:transparent;color:var(--text);font-size:13px}
+  .nexts button:hover{border-color:var(--accent);background:var(--accent-dim)}
+  .chat-input{padding:14px 24px 20px;flex-shrink:0}
+  .chat-input .box{border-radius:14px;background:var(--surface);border:1px solid var(--line-2);padding:10px 12px;display:flex;align-items:center;gap:10px}
+  .chat-input input{flex-grow:1;border:0;background:transparent;color:var(--text);font-size:14px;font-family:inherit;outline:none;min-width:0}
+  .chat-input .hint{font-size:12px;color:var(--dim);white-space:nowrap}
+
+  .panel{width:var(--panel);flex-shrink:0;background:var(--bg-2);display:flex;flex-direction:column;min-height:0}
+  .panel-top{height:54px;padding:0 20px;display:flex;align-items:center;gap:10px;border-bottom:1px solid var(--line);flex-shrink:0}
+  .panel-top b{font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .ver{height:22px;padding:0 8px;border-radius:11px;background:var(--surface-2);font-size:11px;color:var(--muted);display:inline-flex;align-items:center;flex-shrink:0}
+  .panel-tabs{display:flex;gap:2px;padding:10px 20px 0;border-bottom:1px solid var(--line);flex-shrink:0;overflow-x:auto}
+  .panel-tabs button{padding:8px 10px;border:0;background:transparent;color:var(--muted);font-size:13px;border-bottom:2px solid transparent;white-space:nowrap}
+  .panel-tabs button.on{color:var(--text);font-weight:700;border-bottom-color:var(--accent)}
+  .panel-body{flex-grow:1;overflow-y:auto;padding:20px;display:flex;flex-direction:column;gap:18px}
+  .panel-empty{flex-grow:1;margin:20px;border-radius:var(--radius);border:1px dashed var(--line-2);padding:24px 20px;display:flex;flex-direction:column;gap:14px;color:var(--muted)}
+  .panel-empty .file{background:var(--surface);color:var(--muted);font-size:13px}
+  .panel-empty .file i{width:8px;height:8px;border-radius:4px;border:1px solid var(--line-2)}
+  .panel-foot{padding:14px 20px;padding-bottom:calc(14px + env(safe-area-inset-bottom,0px));border-top:1px solid var(--line);display:flex;gap:8px;flex-wrap:wrap;flex-shrink:0}
+  .blk{display:flex;flex-direction:column;gap:10px}
+  .blk .lb{font-size:11px;letter-spacing:.06em;color:var(--dim)}
+  .rank{display:flex;gap:12px;padding:14px;border-radius:12px;background:var(--surface)}
+  .rank .n{font-size:22px;font-weight:700;color:var(--accent);width:28px;flex-shrink:0}
+  .rank.two .n{color:var(--muted)}
+  .rank b{display:block;margin-bottom:3px}
+  .rank p{margin:0;font-size:12px;color:var(--muted);line-height:1.6}
+  .rank .flag{color:var(--warn)}
+  .row-item{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:10px;background:var(--surface);font-size:13px}
+  .row-item .poster{width:26px;height:36px;border-radius:3px;background:var(--surface-3);flex-shrink:0}
+  .row-item .g{flex-grow:1;min-width:0}
+  .row-item .m{font-size:12px;color:var(--muted);white-space:nowrap}
+  .note{padding:12px 14px;border-radius:10px;background:var(--surface);font-size:12px;line-height:1.6;color:var(--muted)}
+  table.sub{width:100%;border-collapse:collapse;font-size:12px}
+  table.sub th{text-align:left;font-weight:500;color:var(--dim);padding:6px 8px;border-bottom:1px solid var(--line)}
+  table.sub td{padding:8px 8px;border-bottom:1px solid var(--line);vertical-align:top;line-height:1.5}
+  table.sub td.tc{font-family:var(--mono);color:var(--dim);white-space:nowrap}
+  table.sub tr.low td{background:rgba(242,178,62,.06)}
+  .reels{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+  .reel{aspect-ratio:9/16;border-radius:10px;background:linear-gradient(180deg,var(--surface-3),var(--surface));border:1px solid var(--line);position:relative;padding:10px;display:flex;flex-direction:column;justify-content:flex-end;gap:4px;max-width:100%}
+  .reel .tc{font-family:var(--mono);font-size:10px;color:var(--dim)}
+  .reel b{font-size:12px;line-height:1.4}
+  .reel .dur{position:absolute;top:8px;right:8px;font-family:var(--mono);font-size:10px;padding:2px 6px;border-radius:4px;background:rgba(0,0,0,.5)}
+  .caption{padding:12px 14px;border-radius:10px;background:var(--surface);font-size:13px;line-height:1.6;display:flex;flex-direction:column;gap:6px}
+  .caption .meta{font-size:11px;color:var(--dim);display:flex;gap:10px}
+  .site-prev{border-radius:12px;border:1px solid var(--line);overflow:hidden;background:var(--surface)}
+  .site-prev .bar{display:flex;align-items:center;gap:6px;padding:8px 12px;background:var(--surface-2);font-family:var(--mono);font-size:11px;color:var(--dim)}
+  .site-prev .bar i{width:8px;height:8px;border-radius:4px;background:var(--line-2)}
+  .site-prev .body{padding:22px 20px;display:flex;flex-direction:column;gap:8px;background:linear-gradient(180deg,#1E1C1A,#151413);min-height:150px;justify-content:flex-end}
+  .site-prev .body .ttl{font-size:22px;font-weight:700}
+  .site-prev .body .sub{font-size:12px;color:var(--muted)}
+  .site-prev .lock{display:inline-flex;align-items:center;gap:6px;font-size:11px;color:var(--warn)}
+  .check{display:flex;flex-direction:column;gap:6px}
+  .check div{display:flex;align-items:center;gap:8px;font-size:13px;padding:8px 12px;border-radius:8px;background:var(--surface)}
+  .check div i{width:16px;height:16px;border-radius:8px;background:var(--ok);color:#121110;font-size:11px;display:inline-flex;align-items:center;justify-content:center;font-weight:700;flex-shrink:0}
+  .check div.todo i{background:var(--surface-3);color:var(--dim)}
+  .stat-row{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+  .stat{padding:14px;border-radius:12px;background:var(--surface);display:flex;flex-direction:column;gap:4px}
+  .stat .l{font-size:11px;color:var(--dim)}
+  .stat .v{font-size:22px;font-weight:700;font-family:var(--mono)}
+  .stat .v.up{color:var(--ok)}
+  .bars{display:flex;flex-direction:column;gap:8px}
+  .bar-row{display:grid;grid-template-columns:72px 1fr 44px;align-items:center;gap:10px;font-size:12px}
+  .bar-row .lab{color:var(--muted)}
+  .bar-row .track{height:8px;border-radius:4px;background:var(--surface-2);overflow:hidden}
+  .bar-row .fill{height:100%;border-radius:4px;background:var(--accent)}
+  .bar-row .val{font-family:var(--mono);text-align:right;color:var(--muted)}
+
+  /* ---------- simple pages ---------- */
+  .list{display:flex;flex-direction:column;gap:8px}
+  .list-item{display:flex;align-items:center;gap:14px;padding:14px 16px;border-radius:12px;background:var(--surface);border:1px solid var(--line)}
+  .list-item .ico{width:36px;height:36px;border-radius:10px;background:var(--surface-3);display:flex;align-items:center;justify-content:center;color:var(--muted);flex-shrink:0}
+  .list-item .g{flex-grow:1;min-width:0}
+  .list-item .g b{display:block}
+  .list-item .g span{font-size:12px;color:var(--muted)}
+  .pill{height:24px;padding:0 10px;border-radius:12px;font-size:11px;display:inline-flex;align-items:center;gap:6px;background:var(--surface-2);color:var(--muted);white-space:nowrap}
+  .pill.ok{color:var(--ok)}
+  .pill.warn{color:var(--warn)}
+  .film-head{display:flex;gap:22px;align-items:flex-start;flex-wrap:wrap}
+  .poster-lg{width:110px;height:156px;border-radius:8px;background:var(--surface-3);flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:11px;color:var(--dim)}
+  .film-head .g{flex-grow:1;display:flex;flex-direction:column;gap:10px;min-width:240px}
+  .film-head h1{font-size:26px}
+  .tags{display:flex;gap:6px;flex-wrap:wrap}
+  .status-grid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:12px}
+  .status{display:flex;flex-direction:column;gap:8px;padding:16px;border-radius:var(--radius);background:var(--surface);border:1px solid var(--line)}
+  .status .h{display:flex;align-items:center;justify-content:space-between;font-weight:700}
+  .status .h i{width:8px;height:8px;border-radius:4px;background:var(--line-2)}
+  .status .h i.ok{background:var(--ok)}
+  .status .h i.warn{background:var(--warn)}
+  .status p{margin:0;font-size:12px;color:var(--muted);line-height:1.6;flex-grow:1}
+  .status .btn{width:100%;justify-content:center}
+
+  .sr-only{position:absolute;left:-9999px}
+  .backdrop{display:none}
+
+  @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+
+  @media (max-width:1100px){
+    :root{--panel:360px}
+    .products{grid-template-columns:repeat(3,minmax(0,1fr))}
+    .scen-grid{grid-template-columns:repeat(3,minmax(0,1fr))}
+    .status-grid{grid-template-columns:repeat(3,minmax(0,1fr))}
+    .tool-hero{grid-template-columns:1fr}
+  }
+  @media (max-width:820px){
+    .sidebar{position:fixed;inset:0 auto 0 0;z-index:30;transform:translateX(-100%);transition:transform .2s;padding-top:calc(16px + env(safe-area-inset-top,0px));padding-bottom:calc(16px + env(safe-area-inset-bottom,0px))}
+    .sidebar.open{transform:none}
+    .backdrop.on{display:block;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:29}
+    .topbar{display:flex}
+    .page{padding:20px 16px 40px;gap:22px}
+    .products{display:flex;overflow-x:auto;gap:8px;padding-bottom:4px;scroll-snap-type:x mandatory}
+    .product{flex:0 0 220px;scroll-snap-align:start}
+    .hero h1{font-size:24px}
+    .scen-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+    .status-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+    .chatwrap{flex-direction:column}
+    .chatcol{border-right:0;flex:1 1 auto;min-height:55%}
+    .panel{width:100%;border-top:1px solid var(--line);flex:0 0 45%}
+    .msgs,.chat-input{padding-inline:16px}
+  }
+  @media (max-width:480px){
+    .scen-grid{grid-template-columns:1fr}
+    .status-grid{grid-template-columns:1fr}
+    .stat-row{grid-template-columns:1fr 1fr}
+  }
+</style>
+</head>
+<body>
+
+<div class="shell">
+  <div class="backdrop" id="backdrop"></div>
+  <aside class="sidebar" id="sidebar" aria-label="主選單">
+    <div class="brand">
+      <div class="brand-mark"></div>
+      <div class="brand-name">Giloo Creator Tools</div>
+      <span class="brand-tag">POC</span>
+    </div>
+    <button class="nav-btn primary" data-go="#/">
+      <span class="ico"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg></span>
+      New chat <span class="sub">⌘ ↵</span>
+    </button>
+    <button class="nav-btn" data-go="#/projects" data-nav="projects">
+      <span class="ico"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 7h18v13H3zM3 7l2-3h14l2 3"/></svg></span>
+      Projects <span class="sub">我的片</span>
+    </button>
+    <button class="nav-btn" data-go="#/skills" data-nav="skills">
+      <span class="ico"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 2L4 14h7l-1 8 9-12h-7z"/></svg></span>
+      Skills <span class="sub">五個產品</span>
+    </button>
+    <button class="nav-btn" data-go="#/connectors" data-nav="connectors">
+      <span class="ico"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 13a5 5 0 0 0 7 0l3-3a5 5 0 0 0-7-7l-1 1"/><path d="M14 11a5 5 0 0 0-7 0l-3 3a5 5 0 0 0 7 7l1-1"/></svg></span>
+      Connectors <span class="sub">IG、Drive</span>
+    </button>
+    <div class="nav-sec"><span>Chats</span><button class="link-btn" id="clearChats" style="height:auto;padding:0;font-size:11px">清空</button></div>
+    <div id="chatList"></div>
+    <div class="credits">
+      <div class="l">剩餘點數</div>
+      <div class="v num" id="creditsV">1,240 <span>credits</span></div>
+    </div>
+    <div class="account"><div class="avatar"></div>吉光電影 <span style="margin-left:auto;font-size:11px;color:var(--dim)">範例帳號</span></div>
+  </aside>
+
+  <div class="main">
+    <div class="topbar">
+      <button class="icon-btn" id="menuBtn" aria-label="開啟選單"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 7h16M4 12h16M4 17h16"/></svg></button>
+      <div class="brand"><div class="brand-mark"></div><div class="brand-name">Giloo Creator Tools</div></div>
+      <span class="num" style="font-size:12px;color:var(--muted)">1,240 點</span>
+    </div>
+    <nav class="topnav" id="topnav" aria-label="產品">
+      <a href="#/" data-key="home">首頁</a>
+      <span class="sep"></span>
+      <a href="#/tool/subtitle" data-key="subtitle">字幕翻譯</a>
+      <a href="#/tool/presskit" data-key="presskit">官網 Press Kit</a>
+      <a href="#/tool/report" data-key="report">行銷策略報告 <span class="badge">New</span></a>
+      <a href="#/tool/social" data-key="social">社群後台</a>
+      <a href="#/tool/listening" data-key="listening">輿情分析 <span class="badge free">Beta</span></a>
+      <span class="sep"></span>
+      <a href="#/projects" data-key="projects">我的片</a>
+      <span class="right"><button class="icon-btn" aria-label="搜尋"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg></button></span>
+    </nav>
+    <div id="view" class="scroll"></div>
+  </div>
+</div>
+
+<script>
+/* =========================================================
+   DATA
+   ========================================================= */
+const ICONS = {
+  subtitle:'<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 5h16v14H4zM7 15h10M7 11h6"/></svg>',
+  presskit:'<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18"/></svg>',
+  report:'<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>',
+  social:'<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="4"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1"/></svg>',
+  listening:'<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 1 0 9-9"/><path d="M3 3v6h6"/><path d="M12 7v5l3 3"/></svg>',
+  file:'<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/><path d="M14 3v6h6"/></svg>',
+  send:'<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 19V5M5 12l7-7 7 7"/></svg>',
+  arr:'<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 6l6 6-6 6"/></svg>',
+  plus:'<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>',
+};
+
+const TOOLS = {
+  subtitle:{ id:'subtitle', name:'字幕翻譯', short:'多語字幕檔加校對報告', give:'字幕檔或正片', get:'英、日、韓字幕檔，加一份校對報告', unit:'每分鐘 4 點', time:'約 15 分鐘',
+    asks:['字幕來源：從片子資料帶入，或上傳新檔','原始語言和目標語言','用途：影展投件、串流上架、社群短片','名詞表，可選'],
+    examples:['幫《造山者》做英文和日文字幕，要投東京的影展','中文字幕轉英文，人名用羅馬拼音不要翻','把這支預告的字幕翻成韓文'],
+    est:{pts:380, twd:1140, why:'95 分鐘 × 2 語言 × 每分鐘 2 點', time:'約 15 分鐘'},
+    resultTitle:'造山者 英日字幕', resultTabs:['檔案','逐句校對','名詞表'] },
+  presskit:{ id:'presskit', name:'官網與 Press Kit', short:'單片網站、密碼看片頁', give:'劇照、片介、影展紀錄', get:'單片網站、密碼保護看片頁、可下載的 Press Kit', unit:'每站 300 點', time:'約 10 分鐘',
+    asks:['這個網站現在是給誰看：策展人私下看片，還是公開宣傳','要不要放正片或預告，誰能看','片介、劇照、導演的話，從片子資料帶入','網址和密碼'],
+    examples:['幫《造山者》做一個策展人看片頁，要密碼和浮水印','做一頁英文 press kit，三張劇照加導演的話','影展跑完了，把看片頁改成公開頁'],
+    est:{pts:300, twd:900, why:'單片網站一站，含看片頁和 Press Kit', time:'約 10 分鐘'},
+    resultTitle:'造山者 策展人看片頁', resultTabs:['網站','Press Kit','誰看過'] },
+  report:{ id:'report', name:'行銷策略報告', short:'市場優先序、買家名單', give:'片介、預算、目標市場、上映時間', get:'市場優先序、相似片、可接洽的買家和影展、下一步', unit:'每份 600 點', time:'約 20 分鐘',
+    asks:['片介、預告、影展紀錄，從片子資料帶入','預算和上映時間','目標市場，或讓我建議','發行權利還在誰手上'],
+    examples:['片子剪好了，我不知道該投哪些影展','這部片值得去哪個國家？預算只有 50 萬','有跟我類似的片嗎？他們怎麼賣出去的'],
+    est:{pts:600, twd:1800, why:'一份完整報告，含買家名單和下一步', time:'約 20 分鐘'},
+    resultTitle:'造山者 出海策略報告', resultTabs:['摘要','市場優先序','相似片','買家名單','下一步'] },
+  social:{ id:'social', name:'社群後台', short:'Reels、文案、排程', give:'正片或預告、這波要推什麼', get:'Reels 片段、貼文文案、發文排程', unit:'每則 40 點', time:'約 5 分鐘',
+    asks:['素材：正片、預告，從片子資料帶入','這波要推什麼：入選、上映、得獎','平台和語言','要幾則，什麼時候發'],
+    examples:['入選了，三天內要發社群，我只有一支預告','把預告剪成三支直式 Reels','要上院線了，一個月 30 則貼文'],
+    est:{pts:120, twd:360, why:'3 則 Reels 加文案，每則 40 點', time:'約 5 分鐘'},
+    resultTitle:'造山者 IDFA 入選 Reels', resultTabs:['Reels','文案','排程'] },
+  listening:{ id:'listening', name:'輿情分析', short:'誰在談、談什麼', give:'片名、議題關鍵字', get:'討論量趨勢、誰在談、可切入的社群', unit:'每份 200 點', time:'約 8 分鐘',
+    asks:['關鍵字：片名、議題、人物','哪個市場，哪個語言','時間範圍','要不要持續追蹤'],
+    examples:['我的片講半導體，全世界現在誰在談這件事','上串流了，觀眾都在哪裡討論？有沒有負評','舊片想重新推，最近這個議題又熱起來'],
+    est:{pts:200, twd:600, why:'一個市場、90 天、四個平台', time:'約 8 分鐘'},
+    resultTitle:'半導體題材 日本討論', resultTabs:['總覽','誰在談','可切入社群'] },
+};
+const TOOL_ORDER = ['subtitle','presskit','report','social','listening'];
+
+const STAGES = ['片子快完成，準備出門','影展入選了','找錢、找夥伴、找買家','上映和上架'];
+const SCENARIOS = [
+  {s:0,q:'片子剪好了，我不知道該投哪些影展。',t:['report'],home:1},
+  {s:0,q:'我想投 IDFA 或山形，先幫我看有沒有機會，別浪費報名費。',t:['report','listening'],home:1},
+  {s:0,q:'投影展要英文字幕，下週截止。',t:['subtitle'],home:1},
+  {s:0,q:'策展人要看片，我不敢丟 YouTube 連結。',t:['presskit'],home:1},
+  {s:0,q:'影展要我交 press kit，我從來沒做過。',t:['presskit']},
+  {s:0,q:'我的片講半導體，全世界現在誰在談這件事？',t:['listening']},
+  {s:1,q:'入選了，三天內要發社群，我只有一支預告。',t:['social'],home:1},
+  {s:1,q:'首映在東京，要日文字幕和日文版貼文。',t:['subtitle','social']},
+  {s:1,q:'影展要我提供三張劇照加導演的話，用英文。',t:['presskit']},
+  {s:1,q:'入選後有人來問買片，我不知道對方是誰、該不該回。',t:['report'],home:1},
+  {s:1,q:'首映後反應不錯，接下來還能投哪裡？片子會不會太舊？',t:['report']},
+  {s:2,q:'這部片值得去哪個國家？我預算只有 50 萬。',t:['report'],home:1},
+  {s:2,q:'有跟我類似的片嗎？他們是怎麼賣出去的？',t:['report']},
+  {s:2,q:'我想找海外聯合製片，去 CCDF 之前要準備什麼？',t:['presskit','report']},
+  {s:2,q:'片子講原住民議題，有沒有 NGO 或大學會想放？',t:['listening','report']},
+  {s:2,q:'有品牌說想贊助，我要怎麼包裝這部片給他們看？',t:['presskit']},
+  {s:3,q:'要上院線了，一個月內要發 30 則貼文，我一個人。',t:['social'],home:1},
+  {s:3,q:'上串流了，觀眾都在哪裡討論？有沒有負評要處理？',t:['listening']},
+  {s:3,q:'影展跑完了，權利還在我手上，片子放著沒人看。',t:['presskit']},
+  {s:3,q:'舊片想重新推，趁最近這個議題又熱起來。',t:['listening','social']},
+];
+
+const FILMS = [
+  {id:'chip', name:'造山者', en:'A Chip Odyssey', year:2026, dur:95, status:'影展投件中', markets:'日本、北美', release:'2027 春',
+   assets:[['正片',1],['預告',1],['中文字幕',1],['片介與導演自述',1],['劇照 24 張',1],['發行權利範圍',0],['影展紀錄',0]],
+   tools:{subtitle:{st:'ok',txt:'英文 ✓ 日文 ✓<br>日文有 38 句待母語校對',cta:'加韓文'},report:{st:'ok',txt:'v1 已核准<br>日本優先，北美走亞裔社群',cta:'繼續對話'},social:{st:'warn',txt:'12 則草稿，3 則已發<br>IDFA 投件用 Reels 待核准',cta:'核准 3 則'},presskit:{st:'ok',txt:'密碼看片頁上線<br>本週 14 位策展人看過',cta:'改成公開頁'},listening:{st:'',txt:'還沒跑過<br>報告建議先看日本的討論',cta:'開始 · 200 點'}}},
+  {id:'panico', name:'惡魔的愛', en:'Panico d’Amore', year:2028, dur:85, status:'拍攝中', markets:'待定', release:'2028',
+   assets:[['預告',1],['片介',1],['劇照 8 張',1],['正片',0],['中文字幕',0],['發行權利範圍',0],['影展紀錄',0]],
+   tools:{subtitle:{st:'',txt:'還沒跑過',cta:'開始'},report:{st:'',txt:'還沒跑過',cta:'開始'},social:{st:'warn',txt:'IDFA 投件 Reels 草稿 3 則',cta:'看草稿'},presskit:{st:'',txt:'還沒跑過',cta:'開始'},listening:{st:'',txt:'還沒跑過',cta:'開始'}}},
+  {id:'temple', name:'神壇與帳篷', en:'Two Roads, One Home', year:2027, dur:90, status:'後製中', markets:'台灣、日本', release:'2027 底',
+   assets:[['預告',1],['片介',1],['劇照 12 張',1],['正片',0],['中文字幕',1],['發行權利範圍',1],['影展紀錄',0]],
+   tools:{subtitle:{st:'',txt:'還沒跑過',cta:'開始'},report:{st:'',txt:'還沒跑過',cta:'開始'},social:{st:'',txt:'還沒跑過',cta:'開始'},presskit:{st:'ok',txt:'策展人看片頁上線',cta:'看誰看過'},listening:{st:'',txt:'還沒跑過',cta:'開始'}}},
+];
+
+const CONNECTORS = [
+  {n:'Instagram',d:'讀取觸及數、直接排程發文',on:1},{n:'YouTube',d:'預告和片段上傳，讀取觀看數',on:1},{n:'Google Drive',d:'正片、字幕、劇照直接帶入',on:1},
+  {n:'Vimeo',d:'既有看片連結匯入',on:0},{n:'FilmFreeway',d:'投件紀錄和截止日同步',on:0},{n:'Threads',d:'排程發文',on:0},{n:'Gmail',d:'買家來信自動歸檔到片',on:0},
+];
+
+/* =========================================================
+   STATE
+   ========================================================= */
+const store = {
+  get(){ try{ return JSON.parse(localStorage.getItem('giloo-poc-sessions')||'[]'); }catch(e){ return []; } },
+  set(v){ try{ localStorage.setItem('giloo-poc-sessions', JSON.stringify(v)); }catch(e){} },
+};
+let sessions = store.get();
+let credits = 1240;
+try{ const c = localStorage.getItem('giloo-poc-credits'); if(c) credits = +c; }catch(e){}
+function saveCredits(){ try{ localStorage.setItem('giloo-poc-credits', credits); }catch(e){} document.getElementById('creditsV').innerHTML = credits.toLocaleString()+' <span>credits</span>'; }
+function saveSessions(){ store.set(sessions); renderChatList(); }
+const uid = () => Math.random().toString(36).slice(2,9);
+const esc = s => String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+
+function detectTool(text){
+  const t = text;
+  if(/字幕|翻譯|translate|subtitle|英文|日文|韓文/.test(t)) return 'subtitle';
+  if(/press ?kit|看片|網站|官網|網頁|劇照|贊助|包裝/i.test(t)) return 'presskit';
+  if(/貼文|reels|社群|短片|ig|instagram|threads|發文/i.test(t)) return 'social';
+  if(/輿情|討論|誰在談|負評|熱起來|聲量|talk/i.test(t)) return 'listening';
+  return 'report';
+}
+
+/* =========================================================
+   ROUTER
+   ========================================================= */
+const view = document.getElementById('view');
+function go(h){ location.hash = h; }
+window.addEventListener('hashchange', route);
+document.addEventListener('click', e => {
+  const b = e.target.closest('[data-go]'); if(b){ go(b.dataset.go); closeSidebar(); }
+});
+document.getElementById('menuBtn').addEventListener('click', () => { document.getElementById('sidebar').classList.add('open'); document.getElementById('backdrop').classList.add('on'); });
+document.getElementById('backdrop').addEventListener('click', closeSidebar);
+function closeSidebar(){ document.getElementById('sidebar').classList.remove('open'); document.getElementById('backdrop').classList.remove('on'); }
+document.getElementById('clearChats').addEventListener('click', () => { sessions = []; saveSessions(); go('#/'); });
+
+function route(){
+  const h = location.hash || '#/';
+  const [_, a, b] = h.split('/');
+  document.querySelectorAll('[data-nav]').forEach(el => el.classList.toggle('active', el.dataset.nav === a));
+  const key = a === 'tool' ? b : a === 'projects' || a === 'project' ? 'projects' : (!a ? 'home' : '');
+  document.querySelectorAll('#topnav a').forEach(el => el.classList.toggle('on', el.dataset.key === key));
+  if(a === 'tool' && TOOLS[b]) renderTool(b);
+  else if(a === 'chat' && sessions.find(s => s.id === b)) renderChat(b);
+  else if(a === 'skills') renderSkills();
+  else if(a === 'connectors') renderConnectors();
+  else if(a === 'projects') renderProjects();
+  else if(a === 'project' && FILMS.find(f => f.id === b)) renderFilm(b);
+  else renderHome();
+  view.scrollTop = 0;
+  renderChatList();
+}
+
+/* =========================================================
+   SHARED PIECES
+   ========================================================= */
+function productBar(active){
+  return `<section class="blk">
+    <div class="eyebrow"><span>產品功能</span><span class="n">五個入口，各自是獨立頁面，全部用對話操作</span></div>
+    <div class="products">${TOOL_ORDER.map(id => { const t = TOOLS[id]; return `
+      <button class="product ${active===id?'active':''}" data-go="#/tool/${id}">
+        <span class="ico">${ICONS[id]}</span>
+        <span class="tx"><span class="nm">${t.name}</span><span class="ds">${t.short}</span></span>
+        <span class="arr">${ICONS.arr}</span>
+      </button>`;}).join('')}
+    </div></section>`;
+}
+
+function composer({tool='', film='chip', placeholder, lockTool=false}={}){
+  const filmOpts = FILMS.map(f => `<option value="${f.id}" ${f.id===film?'selected':''}>${f.name}</option>`).join('');
+  return `<form class="composer" id="composer" data-tool="${tool}">
+    <label class="sr-only" for="ask">輸入需求</label>
+    <textarea id="ask" rows="2" placeholder="${esc(placeholder||'例如：幫《造山者》做英文和日文字幕，要投東京的影展')}"></textarea>
+    <div class="composer-row">
+      <button type="button" class="icon-btn" aria-label="加入檔案" style="width:34px;height:34px">${ICONS.plus}</button>
+      <label class="chip"><span class="k">片</span><select id="filmSel">${filmOpts}</select></label>
+      ${tool ? `<span class="chip tool"><i class="dot"></i>${TOOLS[tool].name}</span>` : `<span class="chip" id="toolChip"><span class="k">Skill</span> 自動判斷</span>`}
+      <span class="chip ghost" id="estChip">預估費用 輸入後顯示</span>
+      <span class="spacer"></span>
+      <button type="button" class="link-btn">先問問題，不扣點</button>
+      <button type="submit" class="send" aria-label="送出">${ICONS.send}</button>
+    </div>
+  </form>`;
+}
+
+function bindComposer(){
+  const f = document.getElementById('composer'); if(!f) return;
+  const ta = f.querySelector('textarea'), est = f.querySelector('#estChip'), tc = f.querySelector('#toolChip');
+  ta.addEventListener('input', () => {
+    const tool = f.dataset.tool || detectTool(ta.value);
+    if(ta.value.trim()){
+      if(tc) tc.innerHTML = `<span class="k">Skill</span> ${TOOLS[tool].name}`;
+      est.textContent = `預估 ${TOOLS[tool].est.pts} 點 · ${TOOLS[tool].est.time}`; est.classList.remove('ghost');
+    } else { if(tc) tc.innerHTML = `<span class="k">Skill</span> 自動判斷`; est.textContent = '預估費用 輸入後顯示'; est.classList.add('ghost'); }
+  });
+  ta.addEventListener('keydown', e => { if((e.metaKey||e.ctrlKey) && e.key==='Enter'){ f.requestSubmit(); } });
+  f.addEventListener('submit', e => {
+    e.preventDefault();
+    const text = ta.value.trim(); if(!text) { ta.focus(); return; }
+    startChat({ text, tool: f.dataset.tool || detectTool(text), film: f.querySelector('#filmSel').value });
+  });
+}
+
+function scenarioGrid(list, opts={}){
+  return `<div class="scen-grid">${list.map(sc => `
+    <button class="scen" data-scen="${SCENARIOS.indexOf(sc)}">
+      <span class="stage">${STAGES[sc.s]}</span>
+      <span class="q">「${sc.q}」</span>
+      <span class="uses"><i></i>${sc.t.map(id => TOOLS[id].name).join(' · ')}</span>
+    </button>`).join('')}</div>`;
+}
+document.addEventListener('click', e => {
+  const b = e.target.closest('[data-scen]'); if(!b) return;
+  const sc = SCENARIOS[+b.dataset.scen];
+  startChat({ text: sc.q, tool: sc.t[0], film:'chip' });
+});
+
+/* =========================================================
+   HOME
+   ========================================================= */
+let homeTab = -1;
+function renderHome(){
+  const list = homeTab < 0 ? SCENARIOS.filter(s => s.home) : SCENARIOS.filter(s => s.s === homeTab);
+  view.innerHTML = `<div class="page">
+    <section class="hero">
+      <h1>你的片現在卡在哪一步？</h1>
+      <p>直接用說的，或從下面選一個最像你的情況。開始前會先告訴你要準備什麼、大約花多少點。</p>
+      ${composer()}
+      <div class="tool-pick"><span class="lbl">或直接指定</span>${TOOL_ORDER.map(id => `<button type="button" data-pick="${id}">${TOOLS[id].name}</button>`).join('')}</div>
+    </section>
+    <section class="blk">
+      <div class="tabs">
+        <button class="${homeTab<0?'on':''}" data-tab="-1">常見</button>
+        ${STAGES.map((s,i) => `<button class="${homeTab===i?'on':''}" data-tab="${i}">${s}</button>`).join('')}
+        <span class="count">${list.length} 個情境，點一個就開始</span>
+      </div>
+      ${scenarioGrid(list)}
+    </section>
+    <section class="recent">
+      <span class="l">其他導演最近在做</span>
+      ${['首映在東京，要日文字幕和日文貼文','有跟我類似的片嗎？他們怎麼賣出去的','片子講原住民議題，有沒有 NGO 或大學會想放','影展跑完了，權利還在我手上，片子放著沒人看'].map(q => `<button data-fill="${esc(q)}">${q}</button>`).join('')}
+    </section>
+  </div>`;
+  bindComposer();
+  view.querySelectorAll('[data-tab]').forEach(b => b.addEventListener('click', () => { homeTab = +b.dataset.tab; renderHome(); }));
+  view.querySelectorAll('[data-pick]').forEach(b => b.addEventListener('click', () => {
+    const f = document.getElementById('composer'); const on = f.dataset.tool === b.dataset.pick;
+    f.dataset.tool = on ? '' : b.dataset.pick;
+    view.querySelectorAll('[data-pick]').forEach(x => x.classList.toggle('on', !on && x === b));
+    const tc = f.querySelector('#toolChip'); if(tc) tc.innerHTML = `<span class="k">Skill</span> ${on?'自動判斷':TOOLS[b.dataset.pick].name}`;
+    f.querySelector('textarea').dispatchEvent(new Event('input')); f.querySelector('textarea').focus();
+  }));
+  view.querySelectorAll('[data-fill]').forEach(b => b.addEventListener('click', () => { const ta = document.getElementById('ask'); ta.value = b.dataset.fill; ta.dispatchEvent(new Event('input')); ta.focus(); }));
+}
+
+/* =========================================================
+   TOOL PAGE
+   ========================================================= */
+function renderTool(id){
+  const t = TOOLS[id];
+  const list = SCENARIOS.filter(s => s.t.includes(id));
+  view.innerHTML = `<div class="page">
+    <section class="tool-hero">
+      <div class="big">
+        <div class="ico">${ICONS[id]}</div>
+        <h1>${t.name}</h1>
+        <div class="kv"><span class="k">你給我</span><span>${t.give}</span><span class="k">你得到</span><span>${t.get}</span><span class="k">費用</span><span class="num">${t.unit}，完成後才扣</span><span class="k">時間</span><span>${t.time}</span></div>
+      </div>
+      <div class="spec">
+        <h3>第一輪會問你的事</h3>
+        <ol>${t.asks.map(a => `<li>${a}</li>`).join('')}</ol>
+        <div class="price"><b class="num">${t.unit}</b><span>確認後才開始，修改不扣點</span></div>
+      </div>
+    </section>
+    <section class="hero" style="padding-block:0">
+      ${composer({tool:id, placeholder: t.examples[0]})}
+      <div class="tool-pick"><span class="lbl">範例</span>${t.examples.map(q => `<button type="button" data-fill="${esc(q)}">${q}</button>`).join('')}</div>
+    </section>
+    <section class="blk">
+      <div class="section-h"><h2>用到 ${t.name} 的情境</h2><span class="d">${list.length} 個</span></div>
+      ${scenarioGrid(list)}
+    </section>
+  </div>`;
+  bindComposer();
+  view.querySelectorAll('[data-fill]').forEach(b => b.addEventListener('click', () => { const ta = document.getElementById('ask'); ta.value = b.dataset.fill; ta.dispatchEvent(new Event('input')); ta.focus(); }));
+}
+
+/* =========================================================
+   CHAT
+   ========================================================= */
+function startChat({text, tool, film}){
+  const f = FILMS.find(x => x.id === film) || FILMS[0];
+  const s = { id: uid(), tool, film: f.id, title: `${f.name} ${TOOLS[tool].name}`, created: Date.now(), status:'intake', spent:0, msgs:[] };
+  s.msgs.push({ role:'user', text });
+  s.msgs.push({ role:'assistant', kind:'intake', tool, done:false });
+  sessions.unshift(s); saveSessions();
+  go('#/chat/'+s.id);
+}
+
+function renderChat(id){
+  const s = sessions.find(x => x.id === id); const t = TOOLS[s.tool]; const f = FILMS.find(x => x.id === s.film);
+  const stTxt = s.status==='done' ? `<span class="st ok">完成 · ${t.est.time.replace('約 ','')}</span>` : s.status==='running' ? `<span class="st">執行中</span>` : `<span class="st">還沒開始，不會扣點</span>`;
+  view.innerHTML = `<div class="chatwrap">
+    <div class="chatcol">
+      <div class="chat-top">
+        <span class="chip"><span class="k">片</span> ${f.name}</span>
+        <span class="chip tool"><i class="dot"></i>${t.name}</span>
+        <span class="chip"><span class="k">${s.status==='done'?'已扣':'預估'}</span> <span class="num">${t.est.pts} 點</span>${s.status==='done'?'':' <span class="k">· 完成後才扣</span>'}</span>
+        ${stTxt}
+      </div>
+      <div class="msgs" id="msgs">${s.msgs.map(m => renderMsg(m, s)).join('')}</div>
+      <form class="chat-input" id="chatForm"><div class="box">
+        <label class="sr-only" for="reply">回覆</label>
+        <input id="reply" placeholder="${s.status==='done'?'回答問號，或叫我改任何一段':'有要補充的嗎？例如：人名用羅馬拼音，不要翻'}">
+        <span class="hint">修改不扣點</span>
+        <button type="submit" class="send" aria-label="送出">${ICONS.send}</button>
+      </div></form>
+    </div>
+    <aside class="panel" id="panel">${renderPanel(s)}</aside>
+  </div>`;
+  const msgs = document.getElementById('msgs'); msgs.scrollTop = msgs.scrollHeight;
+  bindChat(s);
+}
+
+function renderMsg(m, s){
+  if(m.role === 'user') return `<div class="msg user"><div class="bubble">${esc(m.text)}</div></div>`;
+  let body = '';
+  if(m.kind === 'intake') body = m.done ? confirmedCard(m.tool, s) : intakeCard(m.tool, s);
+  else if(m.kind === 'progress') body = progressCard(m);
+  else if(m.kind === 'result') body = resultMsg(m.tool, s);
+  else if(m.kind === 'text') body = `<p>${esc(m.text)}</p>`;
+  return `<div class="msg"><div class="av"></div><div class="body">${body}</div></div>`;
+}
+
+function intakeCard(tool, s){
+  const t = TOOLS[tool]; const f = FILMS.find(x => x.id === s.film);
+  const intro = {
+    subtitle:`好，用<b>字幕翻譯</b>來做。我從《${f.name}》的片子資料抓到中文字幕檔了，你確認三件事，我就開始。投影展的話我會用保守、忠實的譯法，不加梗。`,
+    report:`好，用<b>行銷策略報告</b>來做。片介、預告和影展紀錄我從《${f.name}》帶進來了，還缺三個數字，填完我就開始。`,
+    social:`好，用<b>社群後台</b>來做。我有《${f.name}》的預告，先確認這波要推什麼、發在哪裡，再決定剪幾則。`,
+    presskit:`好，用<b>官網與 Press Kit</b>來做。《${f.name}》的片介和劇照我先帶進來了，先確認這頁是給誰看的。`,
+    listening:`好，用<b>輿情分析</b>來做。先確認關鍵字和市場，我就去抓。`,
+  }[tool];
+  const sec = (n, title, inner) => `<div class="card-sec"><div class="step"><span class="n">${n}</span>${title}</div>${inner}</div>`;
+  let secs = '';
+  if(tool === 'subtitle'){
+    secs = sec(1,'字幕來源',`<div class="file"><span class="fi">${ICONS.file}</span><span><div class="fn">${f.name}_zh-TW_final.srt</div><div class="fm">${f.dur} 分鐘 · 1,412 句 · 從「我的片」帶入</div></span><span class="ok">已確認</span></div>`)
+      + sec(2,'語言',`<div class="opts"><span style="color:var(--muted)">從</span><span class="opt on">中文（繁體）</span><span style="color:var(--muted)">到</span><label class="opt on"><input type="checkbox" checked> English</label><label class="opt on"><input type="checkbox" checked> 日本語</label><label class="opt"><input type="checkbox"> 한국어</label><label class="opt"><input type="checkbox"> Français</label></div>`)
+      + sec(3,'用途與風格',`<div class="opts"><button type="button" class="opt-big on"><b>影展投件</b>忠實、保守，保留原文語氣</button><button type="button" class="opt-big"><b>串流上架</b>口語、易讀，句長控制</button><button type="button" class="opt-big"><b>社群短片</b>短句、有節奏</button></div><div class="opts" style="font-size:13px;color:var(--muted)">名詞表 <span class="opt">${f.name}_人名地名.csv <span style="color:var(--ok)">已帶入</span></span> 可選</div>`);
+  } else if(tool === 'report'){
+    secs = sec(1,'片子資料',`<div class="file"><span class="fi">${ICONS.file}</span><span><div class="fn">片介、預告、劇照、影展紀錄</div><div class="fm">從「我的片」帶入 · 缺發行權利範圍</div></span><span class="ok">已確認</span></div>`)
+      + sec(2,'預算與時間',`<div class="opts"><div class="field" style="flex:1 1 160px"><label for="bud">行銷預算（NT$）</label><input id="bud" value="500,000"></div><div class="field" style="flex:1 1 160px"><label for="rel">預計上映</label><input id="rel" value="2027 春"></div></div>`)
+      + sec(3,'目標市場',`<div class="opts"><label class="opt on"><input type="checkbox" checked> 日本</label><label class="opt on"><input type="checkbox" checked> 北美</label><label class="opt"><input type="checkbox"> 韓國</label><label class="opt"><input type="checkbox"> 歐洲</label><span class="opt">讓我建議</span></div>`);
+  } else if(tool === 'social'){
+    secs = sec(1,'素材',`<div class="file"><span class="fi">${ICONS.file}</span><span><div class="fn">${f.name}_trailer_v3.mp4</div><div class="fm">2 分 10 秒 · 從「我的片」帶入</div></span><span class="ok">已確認</span></div>`)
+      + sec(2,'這波要推什麼',`<div class="opts"><button type="button" class="opt-big on"><b>影展入選</b>公布入選，邀請去看</button><button type="button" class="opt-big"><b>上映</b>場次、購票</button><button type="button" class="opt-big"><b>得獎</b>感謝與後續</button></div>`)
+      + sec(3,'平台與數量',`<div class="opts"><label class="opt on"><input type="checkbox" checked> Instagram Reels</label><label class="opt on"><input type="checkbox" checked> Threads</label><label class="opt"><input type="checkbox"> YouTube Shorts</label><span class="opt">3 則 · 中英雙語</span></div>`);
+  } else if(tool === 'presskit'){
+    secs = sec(1,'這頁給誰看',`<div class="opts"><button type="button" class="opt-big on"><b>策展人私下看片</b>密碼、浮水印、限次觀看</button><button type="button" class="opt-big"><b>公開宣傳頁</b>預告、場次、購票</button></div>`)
+      + sec(2,'內容',`<div class="check"><div><i>✓</i>片介與導演的話（中英）</div><div><i>✓</i>劇照 24 張，挑 6 張</div><div><i>✓</i>影展紀錄</div><div class="todo"><i>?</i>正片：要放嗎，誰能看</div></div>`)
+      + sec(3,'網址與密碼',`<div class="opts"><span class="opt num">giloo.ist/f/chip-odyssey</span><span class="opt">密碼自動產生，可改</span></div>`);
+  } else {
+    secs = sec(1,'關鍵字',`<div class="opts"><span class="opt on">造山者</span><span class="opt on">A Chip Odyssey</span><span class="opt on">半導體 紀錄片</span><span class="opt on">台積電</span><span class="opt">+ 加關鍵字</span></div>`)
+      + sec(2,'市場與語言',`<div class="opts"><label class="opt on"><input type="checkbox" checked> 日本 · 日文</label><label class="opt"><input type="checkbox"> 北美 · 英文</label><label class="opt"><input type="checkbox"> 台灣 · 中文</label></div>`)
+      + sec(3,'時間範圍',`<div class="opts"><span class="opt on">最近 90 天</span><span class="opt">最近一年</span><span class="opt">持續追蹤，每週回報</span></div>`);
+  }
+  return `<p>${intro}</p><div class="card">${secs}
+    <div class="card-foot">
+      <div class="est"><b class="num">${t.est.pts} 點</b> <span class="num">約 NT$ ${t.est.twd.toLocaleString()}</span><small>${t.est.why}。${t.est.time}完成，完成後才扣點。</small></div>
+      <span class="spacer"></span>
+      <button type="button" class="btn">先問問題</button>
+      <button type="button" class="btn primary" data-start="1">開始</button>
+    </div></div>`;
+}
+
+function confirmedCard(tool, s){
+  const f = FILMS.find(x => x.id === s.film);
+  const line = {
+    subtitle:`字幕檔 <b>${f.name}_zh-TW_final.srt</b> · 中文 → <b>English、日本語</b> · <b>影展投件</b>風格 · 名詞表已帶入`,
+    report:`片介、預告、影展紀錄 <b>從「我的片」帶入</b> · 預算 <b>NT$ 500,000</b> · 市場 <b>日本、北美</b> · 上映 <b>2027 春</b>`,
+    social:`素材 <b>預告 v3</b> · 主題 <b>影展入選</b> · <b>Instagram Reels、Threads</b> · 3 則中英雙語`,
+    presskit:`<b>策展人私下看片</b> · 密碼、浮水印、限看一次 · 片介、6 張劇照、影展紀錄 · <b>giloo.ist/f/chip-odyssey</b>`,
+    listening:`關鍵字 <b>造山者、半導體紀錄片、台積電</b> · <b>日本 · 日文</b> · 最近 90 天`,
+  }[tool];
+  return `<div class="confirmed"><span class="ok">已確認</span><span>${line}</span></div>`;
+}
+
+const STEPS = {
+  subtitle:['讀取字幕，切分 1,412 句','帶入名詞表','翻譯英文','翻譯日文','逐句信心檢查','產生校對報告'],
+  report:['讀片介與預告','比對 190 個影展、5 萬部片','找相似片','整理日本、北美的買家與影展','抓社群討論','寫優先序與下一步'],
+  social:['看預告，找 3 個鉤子','剪 3 支直式片段','寫中英文案','排發文時間'],
+  presskit:['整理片介與導演的話','挑 6 張劇照','建看片頁，加浮水印與密碼','產出 Press Kit PDF'],
+  listening:['抓日本四個平台 90 天資料','分群：誰在談','找可切入的社群','寫總覽'],
+};
+function progressCard(m){
+  return `<div class="progress">${STEPS[m.tool].map((st,i) => `<div class="row ${i<m.at?'done':i===m.at?'now':''}"><i></i>${st}</div>`).join('')}</div>`;
+}
+
+function resultMsg(tool, s){
+  const r = {
+    subtitle:{ text:'翻好了，右邊可以逐句看。<b>英文可以直接交，日文有 38 句我信心不高</b>，標了黃色，建議找母語者看一次再送。人名和地名都照名詞表。',
+      qs:['「造山者」片名要翻成 The Mountain Makers 還是保留 A Chip Odyssey？我先用後者。','第 214 句的「良率」我翻成 yield，如果是口語用法要改。'],
+      next:[['presskit','把字幕檔放進策展人看片頁 · 300 點'],['social','剪三支日文 Reels · 120 點']] },
+    report:{ text:'報告好了，右邊可以看。先講結論：<b>日本先做，北美走亞裔社群，不要直接打主流市場。</b>有三個地方我不確定，標了問號，你確認後我會更新報告。',
+      qs:['片子有沒有拿過任何日本影展的入選或獎項？這會改變日本的優先順序。','北美地區的權利是不是還在你手上？我先假設是。','50 萬包含字幕和素材製作費嗎？我先當作不包含。'],
+      next:[['subtitle','照這份做日文字幕 · 190 點'],['presskit','幫買家名單做看片頁 · 300 點'],['listening','看日本現在誰在談這題 · 200 點']] },
+    social:{ text:'三支 Reels 剪好了，右邊可以看。我挑的三個鉤子：<b>張忠謀那句話、無塵室的手、導演旁白「這是一個沒有人相信的賭注」</b>。文案中英都有，發文時間排在入選公布後的三天。',
+      qs:['影展的官方 hashtag 和帳號我沒有，你補一下我再更新文案。','第二支用了 15 秒的音樂，版權在你手上嗎？'],
+      next:[['presskit','做一頁入選公告頁給媒體 · 300 點'],['listening','發完看討論量 · 200 點']] },
+    presskit:{ text:'看片頁上線了，右邊是預覽。<b>有密碼、浮水印、每個連結限看一次</b>，誰看過、看到哪裡都會記錄。Press Kit PDF 也做好了，中英各一份。',
+      qs:['正片我先沒放，要放的話告訴我誰可以看。','導演的話用了片介裡那段，要換成更短的版本嗎？'],
+      next:[['report','找要寄給誰 · 600 點'],['social','入選後改成公開頁，順便發 Reels · 120 點']] },
+    listening:{ text:'抓好了，右邊是總覽。<b>日本過去 90 天談半導體紀錄片的討論量漲了 38%</b>，主要在 X 和 note，談的人多半是科技記者和半導體從業者，不是影迷。這對你是好消息，觀眾在別的地方。',
+      qs:['要不要把「TSMC 熊本」加進關鍵字？熊本廠的討論量很大，但不一定跟片有關。'],
+      next:[['report','照這個結果重排市場優先序 · 600 點'],['social','針對科技社群寫三則貼文 · 120 點']] },
+  }[tool];
+  return `<p>${r.text}</p>
+    <div class="qs">${r.qs.map(q => `<div><span>?</span><span>${q}</span></div>`).join('')}</div>
+    <div class="nexts">${r.next.map(([id,label]) => `<button type="button" data-next="${id}" data-label="${esc(label)}">${label}</button>`).join('')}</div>`;
+}
+
+function bindChat(s){
+  const t = TOOLS[s.tool];
+  view.querySelectorAll('.opt input').forEach(i => i.addEventListener('change', () => i.closest('.opt').classList.toggle('on', i.checked)));
+  view.querySelectorAll('.opt-big').forEach(b => b.addEventListener('click', () => { b.parentElement.querySelectorAll('.opt-big').forEach(x => x.classList.remove('on')); b.classList.add('on'); }));
+  const start = view.querySelector('[data-start]');
+  if(start) start.addEventListener('click', () => runTool(s));
+  view.querySelectorAll('[data-next]').forEach(b => b.addEventListener('click', () => {
+    s.msgs.push({ role:'user', text: b.dataset.label.replace(/ · .*$/,'') });
+    s.tool = b.dataset.next; s.status = 'intake'; s.title = `${FILMS.find(x=>x.id===s.film).name} ${TOOLS[s.tool].name}`;
+    s.msgs.push({ role:'assistant', kind:'intake', tool: s.tool, done:false });
+    saveSessions(); renderChat(s.id);
+  }));
+  const form = document.getElementById('chatForm');
+  form.addEventListener('submit', e => {
+    e.preventDefault(); const inp = document.getElementById('reply'); const text = inp.value.trim(); if(!text) return;
+    s.msgs.push({ role:'user', text });
+    const reply = s.status === 'done' ? `收到，我把這點改進去了，右邊已經更新。修改不扣點。` : `記下了，開始的時候會照這個做。你可以繼續補充，或按上面的「開始」。`;
+    s.msgs.push({ role:'assistant', kind:'text', text: reply });
+    saveSessions(); renderChat(s.id);
+  });
+  view.querySelectorAll('.panel-tabs button').forEach(b => b.addEventListener('click', () => { b.parentElement.querySelectorAll('button').forEach(x => x.classList.remove('on')); b.classList.add('on'); }));
+}
+
+function runTool(s){
+  const intake = s.msgs.find(m => m.kind === 'intake' && !m.done); if(intake) intake.done = true;
+  const prog = { role:'assistant', kind:'progress', tool: s.tool, at:0 };
+  s.msgs.push(prog); s.status = 'running'; saveSessions(); renderChat(s.id);
+  const steps = STEPS[s.tool].length; const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  let i = 0;
+  const tick = () => {
+    i++; prog.at = i;
+    if(i < steps){ const el = view.querySelector('.progress'); if(el) el.outerHTML = progressCard(prog); setTimeout(tick, reduce ? 0 : 550); }
+    else { s.msgs = s.msgs.filter(m => m !== prog); s.msgs.push({ role:'assistant', kind:'result', tool: s.tool }); s.status = 'done'; s.spent += TOOLS[s.tool].est.pts; credits -= TOOLS[s.tool].est.pts; saveCredits(); saveSessions(); renderChat(s.id); }
+  };
+  setTimeout(tick, reduce ? 0 : 550);
+}
+
+/* ---------- right panel ---------- */
+function renderPanel(s){
+  const t = TOOLS[s.tool]; const f = FILMS.find(x => x.id === s.film);
+  const head = `<div class="panel-top"><b>${t.resultTitle.replace('造山者', f.name)}</b><span class="ver">v1</span></div>`;
+  if(s.status !== 'done'){
+    const files = { subtitle:[`${f.name}_en.srt`,`${f.name}_ja.srt`,'校對報告：低信心句、專有名詞'], report:['摘要與市場優先序','相似片 3 部','買家與影展名單','下一步與預算配置'], social:['Reels × 3（9:16）','中英文案 × 3','發文排程'], presskit:['看片頁（密碼、浮水印）','Press Kit PDF 中英','觀看紀錄'], listening:['討論量總覽','誰在談','可切入的社群'] }[s.tool];
+    return `<div class="panel-top"><b>產出</b><span class="ver">${f.name} · ${t.name}</span></div>
+      <div class="panel-empty"><p style="margin:0">開始後，結果會出現在這裡。你可以逐項核對，改完再下載或存回片。</p>
+      <div class="list">${files.map(x => `<div class="file"><i></i>${x}</div>`).join('')}</div>
+      ${s.tool==='subtitle'?`<div class="note" style="margin-top:auto">日文字幕會標出哪些句子建議找母語者再看一次。低資源語言我們不會直接交付。</div>`:''}
+      </div>`;
+  }
+  const tabs = `<div class="panel-tabs">${t.resultTabs.map((x,i) => `<button class="${i===0?'on':''}">${x}</button>`).join('')}</div>`;
+  const foot = `<div class="panel-foot"><button class="btn sm primary" data-go="#/project/${f.id}">核准，存到這部片</button><button class="btn sm">下載</button><button class="btn sm">分享連結</button></div>`;
+  return head + tabs + `<div class="panel-body">${PANELS[s.tool](f)}</div>` + foot;
+}
+const PANELS = {
+  subtitle: f => `
+    <div class="blk"><div class="lb">檔案</div><div class="list">
+      <div class="file"><span class="fi">${ICONS.file}</span><span><div class="fn">${f.name}_en.srt</div><div class="fm">1,412 句 · 可直接交</div></span><span class="ok">完成</span></div>
+      <div class="file"><span class="fi">${ICONS.file}</span><span><div class="fn">${f.name}_ja.srt</div><div class="fm">1,412 句 · 38 句待母語校對</div></span><span class="ok" style="color:var(--warn)">請再看</span></div>
+    </div></div>
+    <div class="blk"><div class="lb">逐句校對，黃色是信心不高的句子</div>
+      <div style="overflow-x:auto"><table class="sub"><tr><th>時間</th><th>中文</th><th>English</th><th>日本語</th></tr>
+      <tr><td class="tc">00:03:12</td><td>這是一個沒有人相信的賭注。</td><td>This was a bet no one believed in.</td><td>誰も信じなかった賭けだった。</td></tr>
+      <tr class="low"><td class="tc">00:14:51</td><td>良率上不去，整條線就停。</td><td>If the yield doesn’t climb, the whole line stops.</td><td>歩留まりが上がらなければ、ライン全体が止まる。</td></tr>
+      <tr><td class="tc">00:27:08</td><td>我們沒有第二次機會。</td><td>We don’t get a second chance.</td><td>二度目のチャンスはない。</td></tr>
+      <tr class="low"><td class="tc">00:41:33</td><td>他說，台灣不能只是代工。</td><td>He said Taiwan couldn’t just be a contractor.</td><td>台湾は下請けだけではいられない、と彼は言った。</td></tr>
+      </table></div></div>
+    <div class="note">名詞表已套用：張忠謀、新竹科學園區、台積電、晶圓、良率。日文的「歩留まり」是業界用法，若要口語版可改「良品率」。</div>`,
+  report: f => `
+    <div class="blk"><div class="lb">優先市場</div>
+      <div class="rank"><span class="n">1</span><div><b>日本 · 影展先行</b><p>半導體題材在日本有現成討論，Tokyo Docs 和山形是入口。預算配置建議 55%。</p></div></div>
+      <div class="rank two"><span class="n">2</span><div><b>北美 · 亞裔社群與大學</b><p>主流買家擁擠且貴。從台裔社群、亞美影展和大學放映切入，配置 30%。<span class="flag">? 權利待確認</span></p></div></div>
+    </div>
+    <div class="blk"><div class="lb">相似片，3 部</div>
+      <div class="row-item"><span class="poster"></span><span class="g">半導體產業紀錄片 A</span><span class="m">日本 TVOD · 2024</span></div>
+      <div class="row-item"><span class="poster"></span><span class="g">科技創業紀錄片 B</span><span class="m">北美教育發行</span></div>
+      <div class="row-item"><span class="poster"></span><span class="g">台灣題材紀錄片 C</span><span class="m">Sheffield 首映</span></div>
+    </div>
+    <div class="blk"><div class="lb">可接洽，8 個，先列 3</div>
+      <div class="row-item"><span class="g"><b>Tokyo Docs</b><br><span style="font-size:12px;color:var(--muted)">亞洲紀錄片提案，11 月截止</span></span><span class="pill ok">影展</span></div>
+      <div class="row-item"><span class="g"><b>NHK World 紀實部門</b><br><span style="font-size:12px;color:var(--muted)">CCDF 有見過，60 分鐘版</span></span><span class="pill">播映方</span></div>
+      <div class="row-item"><span class="g"><b>亞美影展聯盟</b><br><span style="font-size:12px;color:var(--muted)">舊金山、紐約、洛杉磯</span></span><span class="pill">社群</span></div>
+    </div>
+    <div class="note">資料來源：Giloo 影展資料庫 190 個影展、2025 至 2026 入選紀錄，社群討論抓取至 2026-09-19。名單為範例，實際名單需要人工確認。</div>`,
+  social: f => `
+    <div class="blk"><div class="lb">Reels × 3，直式 9:16</div>
+      <div class="reels">
+        <div class="reel"><span class="dur">0:18</span><b>「這是一個沒有人相信的賭注」</b><span class="tc">00:03:12 → 00:03:30</span></div>
+        <div class="reel"><span class="dur">0:15</span><b>無塵室的手</b><span class="tc">00:22:04 → 00:22:19</span></div>
+        <div class="reel"><span class="dur">0:21</span><b>張忠謀那句話</b><span class="tc">01:08:40 → 01:09:01</span></div>
+      </div></div>
+    <div class="blk"><div class="lb">文案</div>
+      <div class="caption"><span>《${f.name}》入選 IDFA 2026。一個沒有人相信的賭注，怎麼變成全世界都離不開的東西。11 月，阿姆斯特丹見。</span><span class="meta"><span>Instagram</span><span>9/24 20:00</span><span>中文</span></span></div>
+      <div class="caption"><span>A Chip Odyssey is going to IDFA 2026. The bet no one believed in, and the island that made it. Amsterdam, November.</span><span class="meta"><span>Instagram</span><span>9/24 20:00</span><span>English</span></span></div>
+      <div class="caption"><span>入選之後才是開始。三支片段，三個進入這部片的方式。</span><span class="meta"><span>Threads</span><span>9/26 12:00</span><span>中文</span></span></div>
+    </div>`,
+  presskit: f => `
+    <div class="blk"><div class="lb">看片頁預覽</div>
+      <div class="site-prev"><div class="bar"><i></i><i></i><i></i><span>giloo.ist/f/chip-odyssey</span></div>
+        <div class="body"><span class="lock">密碼保護 · 浮水印 · 限看一次</span><span class="ttl">${f.name}</span><span class="sub">${f.en} · ${f.year} · ${f.dur} min · 紀錄片</span></div></div>
+    </div>
+    <div class="blk"><div class="lb">Press Kit 內容</div>
+      <div class="check"><div><i>✓</i>片介，中英各 100 字與 300 字</div><div><i>✓</i>導演的話</div><div><i>✓</i>劇照 6 張，含說明</div><div><i>✓</i>影展紀錄與技術規格</div><div class="todo"><i>?</i>正片連結，待你決定誰能看</div></div>
+    </div>
+    <div class="blk"><div class="lb">誰看過</div>
+      <div class="row-item"><span class="g">還沒有人打開。分享連結後，這裡會顯示誰看了、看到第幾分鐘。</span></div>
+    </div>`,
+  listening: f => `
+    <div class="stat-row"><div class="stat"><span class="l">討論量，90 天</span><span class="v up">+38%</span></div><div class="stat"><span class="l">則數</span><span class="v">2,140</span></div><div class="stat"><span class="l">談片的比例</span><span class="v">4%</span></div></div>
+    <div class="blk"><div class="lb">在哪裡談</div><div class="bars">
+      <div class="bar-row"><span class="lab">X</span><span class="track"><span class="fill" style="width:62%"></span></span><span class="val">62%</span></div>
+      <div class="bar-row"><span class="lab">note</span><span class="track"><span class="fill" style="width:21%"></span></span><span class="val">21%</span></div>
+      <div class="bar-row"><span class="lab">YouTube</span><span class="track"><span class="fill" style="width:11%"></span></span><span class="val">11%</span></div>
+      <div class="bar-row"><span class="lab">Filmarks</span><span class="track"><span class="fill" style="width:6%"></span></span><span class="val">6%</span></div>
+    </div></div>
+    <div class="blk"><div class="lb">誰在談</div>
+      <div class="row-item"><span class="g"><b>科技記者與分析師</b><br><span style="font-size:12px;color:var(--muted)">談熊本廠、供應鏈，偶爾提到片</span></span><span class="pill">41%</span></div>
+      <div class="row-item"><span class="g"><b>半導體從業者</b><br><span style="font-size:12px;color:var(--muted)">談職場、技術細節</span></span><span class="pill">33%</span></div>
+      <div class="row-item"><span class="g"><b>紀錄片影迷</b><br><span style="font-size:12px;color:var(--muted)">量小但轉發率最高</span></span><span class="pill">9%</span></div>
+    </div>
+    <div class="note">範例數字，用來示範版面。實際資料來自平台 API 與抓取，更新日期會標在這裡。</div>`,
+};
+
+/* =========================================================
+   SIMPLE PAGES
+   ========================================================= */
+function renderSkills(){
+  view.innerHTML = `<div class="page">
+    <div class="section-h"><h2 style="font-size:24px">Skills</h2><span class="d">五個產品，每一個都是獨立頁面，也都能在對話裡直接叫</span></div>
+    <div class="list">${TOOL_ORDER.map(id => { const t = TOOLS[id]; return `
+      <button class="list-item" data-go="#/tool/${id}" style="text-align:left;color:inherit">
+        <span class="ico" style="background:var(--accent-dim);color:var(--accent)">${ICONS[id]}</span>
+        <span class="g"><b>${t.name}</b><span>${t.give} → ${t.get}</span></span>
+        <span class="pill num">${t.unit}</span><span class="arr" style="color:var(--dim)">${ICONS.arr}</span>
+      </button>`;}).join('')}</div>
+    <div class="note">在對話框打 <span class="num">/</span> 也會跳出這五個。自動判斷的時候，系統會從你的句子猜要用哪一個，猜錯可以改。</div>
+  </div>`;
+}
+function renderConnectors(){
+  view.innerHTML = `<div class="page">
+    <div class="section-h"><h2 style="font-size:24px">Connectors</h2><span class="d">接上之後，素材自己進來，產出可以直接發出去</span></div>
+    <div class="list">${CONNECTORS.map(c => `
+      <div class="list-item"><span class="ico">${ICONS.presskit}</span><span class="g"><b>${c.n}</b><span>${c.d}</span></span>
+      ${c.on ? `<span class="pill ok">已連接</span>` : `<button class="btn sm">連接</button>`}</div>`).join('')}</div>
+  </div>`;
+}
+function renderProjects(){
+  view.innerHTML = `<div class="page">
+    <div class="section-h"><h2 style="font-size:24px">Projects</h2><span class="d">一部片一個 project，五個產品共用同一份基本資料</span></div>
+    <div class="list">${FILMS.map(f => `
+      <button class="list-item" data-go="#/project/${f.id}" style="text-align:left;color:inherit">
+        <span class="poster-lg" style="width:44px;height:62px;font-size:0"></span>
+        <span class="g"><b>${f.name} <span style="font-weight:400;color:var(--muted)">${f.en}</span></b><span>${f.year} · ${f.dur} 分 · ${f.status}</span></span>
+        <span class="pill">${f.assets.filter(a=>a[1]).length}/${f.assets.length} 項資料</span><span style="color:var(--dim)">${ICONS.arr}</span>
+      </button>`).join('')}
+      <button class="list-item" style="text-align:left;color:var(--muted);border-style:dashed"><span class="ico">${ICONS.plus}</span><span class="g"><b style="color:var(--text)">新增一部片</b><span>上傳正片或預告，我先看過再問你細節</span></span></button>
+    </div>
+  </div>`;
+}
+function renderFilm(id){
+  const f = FILMS.find(x => x.id === id);
+  const recent = sessions.filter(s => s.film === id).slice(0,5);
+  view.innerHTML = `<div class="page">
+    <section class="film-head">
+      <div class="poster-lg">海報</div>
+      <div class="g">
+        <div style="display:flex;align-items:baseline;gap:12px;flex-wrap:wrap"><h1>${f.name}</h1><span style="color:var(--muted)">${f.en} · ${f.year} · 紀錄片 · ${f.dur} 分</span></div>
+        <div class="tags"><span class="pill" style="background:var(--accent-dim);color:var(--text)">${f.status}</span><span class="pill">目標：${f.markets}</span><span class="pill">上映：${f.release}</span></div>
+        <div class="blk"><div class="lb">基本資料，五個產品共用，只填一次</div>
+          <div class="tags">${f.assets.map(([n,ok]) => `<span class="pill ${ok?'ok':'warn'}">${ok?'✓':'!'} ${n}</span>`).join('')}</div></div>
+      </div>
+      <button class="btn primary" data-go="#/">${ICONS.plus} 為這部片開新對話</button>
+    </section>
+    <section class="blk">
+      <div class="section-h"><h2>五個產品在這部片的狀態</h2></div>
+      <div class="status-grid">${TOOL_ORDER.map(id => { const st = f.tools[id]; return `
+        <div class="status"><div class="h">${TOOLS[id].name}<i class="${st.st}"></i></div><p>${st.txt}</p>
+        <button class="btn sm ${st.st==='warn'?'primary':''}" data-go="#/tool/${id}">${st.cta}</button></div>`;}).join('')}</div>
+    </section>
+    <section class="blk">
+      <div class="section-h"><h2>最近的對話</h2></div>
+      ${recent.length ? `<div class="list">${recent.map(s => `<button class="list-item" data-go="#/chat/${s.id}" style="text-align:left;color:inherit"><i style="width:6px;height:6px;border-radius:3px;background:var(--accent)"></i><span class="g"><b>${esc(s.title)}</b></span><span class="pill">${TOOLS[s.tool].name} · ${s.status==='done'?'完成':'進行中'}</span></button>`).join('')}</div>`
+        : `<div class="note">這部片還沒有對話。從上面任何一個產品開始，或回首頁用說的。</div>`}
+    </section>
+  </div>`;
+}
+
+/* ---------- sidebar chats ---------- */
+function renderChatList(){
+  const el = document.getElementById('chatList'); const cur = (location.hash.split('/')[2]||'');
+  if(!sessions.length){ el.innerHTML = `<div class="chat-empty">還沒有對話。<br>從首頁選一個情境，或直接用說的。</div>`; return; }
+  const day = ts => { const d = Date.now()-ts; return d < 864e5 ? '今天' : d < 7*864e5 ? '本週' : '更早'; };
+  let last = ''; let html = '';
+  sessions.forEach(s => { const g = day(s.created); if(g !== last){ html += `<div class="chat-empty" style="padding:8px 12px 2px">${g}</div>`; last = g; }
+    html += `<button class="chat-item ${s.id===cur?'active':''}" data-go="#/chat/${s.id}"><span class="t">${esc(s.title)}</span><span class="s">${TOOLS[s.tool].name} · ${s.status==='done'?'完成':'進行中'}</span></button>`; });
+  el.innerHTML = html;
+}
+
+/* ---------- boot ---------- */
+saveCredits();
+route();
+</script>
+
+</body>
+</html>
