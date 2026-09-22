@@ -645,7 +645,6 @@ function renderHome(){
       <h1>下一步，讓你的影片被看見</h1>
       <p>告訴我們你的影片現況，或選一個最接近的情境。我們會先幫你判斷下一步、需要準備什麼。</p>
       ${composer()}
-      <div class="tool-pick"><span class="lbl">或直接指定</span>${TOOL_ORDER.map(id => `<button type="button" data-pick="${id}">${TOOLS[id].name}</button>`).join('')}</div>
     </section>
     <section class="blk">
       <div class="tabs">
