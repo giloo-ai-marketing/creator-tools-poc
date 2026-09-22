@@ -604,8 +604,8 @@ function renderHome(){
   const list = homeTab < 0 ? SCENARIOS.filter(s => s.home) : SCENARIOS.filter(s => s.s === homeTab);
   view.innerHTML = `<div class="page">
     <section class="hero">
-      <h1>你的片現在卡在哪一步？</h1>
-      <p>直接用說的，或從下面選一個最像你的情況。開始前會先告訴你要準備什麼、大約花多少點。</p>
+      <h1>下一步，讓你的影片被看見</h1>
+      <p>告訴我們你的影片現況，或選一個最接近的情境。我們會先幫你判斷下一步、需要準備什麼。</p>
       ${composer()}
       <div class="tool-pick"><span class="lbl">或直接指定</span>${TOOL_ORDER.map(id => `<button type="button" data-pick="${id}">${TOOLS[id].name}</button>`).join('')}</div>
     </section>
