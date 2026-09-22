@@ -442,20 +442,18 @@ const TOOLS = {
 };
 const TOOL_ORDER = ['subtitle','presskit','report','social','listening','other'];
 
-const STAGES = ["影片快完成，準備對外發表", "影展入選了", "找錢、找夥伴、找買家", "宣傳與社群曝光", "上映、上架與放映", "國際化與翻譯", "片子完成後沒方向", "緊急救火"];
+const STAGES = ["影片快完成，準備對外發表", "影展入選了", "找錢、找夥伴、找買家", "宣傳與社群曝光", "上映、上架與放映", "國際化與翻譯", "片子完成後沒方向"];
 const SCENARIOS = [
   {s:0,q:"片子快完成了，我想知道現在該先準備哪些資料。",t:["report", "presskit"],home:1},
-  {s:0,q:"我有預告、劇照和簡介，但不知道能不能拿去投影展。",t:["report"]},
   {s:0,q:"我想投國際影展，但英文資料都還沒整理。",t:["subtitle", "presskit"],home:1},
   {s:0,q:"幫我寫導演的話、劇情簡介、logline，中英文。",t:["presskit"]},
-  {s:0,q:"幫我把預告和劇照整理成 press kit。",t:["presskit"]},
   {s:0,q:"幫我看這部片適合投哪些影展。",t:["report"]},
-  {s:0,q:"我要投釜山，幫我準備所有東西。",t:["report", "presskit"],home:1},
+  {s:0,q:"我需要一份看起來專業的 Press Kit。",t:["presskit"]},
+  {s:0,q:"我要投 OO 影展，幫我準備所有東西。",t:["report", "presskit"],home:1},
   {s:0,q:"我要寄給策展人，但不知道信裡該怎麼介紹這部片。",t:["presskit", "report"]},
   {s:1,q:"入選了，但影展要我交一堆資料，我不知道從哪裡開始。",t:["presskit"],home:1},
   {s:1,q:"影展要英文劇情簡介、導演介紹和劇照說明，可以幫我整理嗎？",t:["presskit", "subtitle"]},
   {s:1,q:"首映快到了，我需要一份社群發文和新聞稿。",t:["social", "presskit"],home:1},
-  {s:1,q:"影展要我提供影片介紹給官網，用英文。",t:["presskit"]},
   {s:1,q:"有人問我這部片的亮點，我不知道怎麼講比較吸引人。",t:["social", "report"]},
   {s:1,q:"影展放映後反應不錯，接下來還能投哪裡？",t:["report"]},
   {s:2,q:"我想找發行或買家，但不知道該準備什麼資料。",t:["report", "presskit"],home:1},
@@ -464,33 +462,30 @@ const SCENARIOS = [
   {s:2,q:"幫我找這個影展會出席的買家和策展人。",t:["report"]},
   {s:2,q:"幫我看這個補助案能不能申請、要準備什麼。",t:["other"]},
   {s:2,q:"這部片適合找哪些國家的買家或影展？",t:["report"]},
+  {s:2,q:"有跟我類似的片嗎？他們怎麼賣出去的？",t:["report"]},
   {s:2,q:"我想找 NGO、學校或品牌合作放映，不知道怎麼開口。",t:["listening", "presskit"]},
   {s:2,q:"我需要把這部片包裝成比較好賣的版本。",t:["report", "presskit"]},
   {s:2,q:"幫我把這部片賣到日本和北美。",t:["report", "subtitle"]},
   {s:2,q:"我下一部片開拍了，上一部的觀眾和夥伴可以怎麼用？",t:["report", "listening"],home:1},
-  {s:3,q:"片子要公開了，幫我排一週社群貼文。",t:["social"]},
   {s:3,q:"我想讓更多人知道這部片，但不想寫得太廣告。",t:["social"]},
   {s:3,q:"幫我從劇情裡找出最適合宣傳的角度。",t:["social", "listening"]},
-  {s:3,q:"我有劇照和預告，幫我寫 IG、Facebook、Threads 文案。",t:["social"]},
+  {s:3,q:"幫我做 IG、Facebook、Threads 貼文。",t:["social"]},
   {s:3,q:"這部片議題很硬，怎麼寫才會讓一般觀眾想看？",t:["social", "listening"],home:1},
-  {s:3,q:"我想做導演訪談貼文，但不知道問什麼題目。",t:["social"]},
-  {s:3,q:"幫我找會推這部片的 KOC，並準備他們可以直接用的貼文。",t:["other"],home:1},
+  {s:3,q:"希望這部片可以被更多人看到，請幫我找適合的 KOC。",t:["other"],home:1},
   {s:3,q:"幫我做一個官網或 mini site。",t:["presskit"],home:1},
   {s:3,q:"幫我從這支影片剪出幾支一分鐘的亮點。",t:["other"]},
-  {s:3,q:"有人在網路上談這部片，幫我看輿情。",t:["listening"]},
+  {s:3,q:"我想知道網路上的人都怎麼評論這部片的。",t:["listening"]},
   {s:4,q:"要上映了，幫我準備 30 則社群貼文。",t:["social"]},
   {s:4,q:"我想辦特映會，需要邀請文案和活動介紹。",t:["presskit", "social"]},
-  {s:4,q:"我要辦十場校園放映，幫我找學校和老師。",t:["other"],home:1},
-  {s:4,q:"幫我做一包放映工具包，讓學校自己辦得起來。",t:["other"]},
+  {s:4,q:"我想要這個議題可以深入校園，該怎麼做？",t:["other"],home:1},
+  {s:4,q:"幫我做一份給公播用的電影放映 SOP。",t:["other"]},
   {s:4,q:"幫我開一個報名頁並追蹤誰來了。",t:["other"]},
   {s:4,q:"我的片上線了，幫我看誰在看、從哪來。",t:["other"]},
   {s:4,q:"我的片要上架平台，幫我寫平台用的簡介和標籤。",t:["presskit"]},
-  {s:4,q:"我想做映後座談，幫我設計主持問題。",t:["report"]},
   {s:4,q:"片子放上 YouTube 後，標題和簡介要怎麼寫？",t:["social"]},
   {s:4,q:"幫我整理這半年的成效給投資人或補助單位。",t:["report", "listening"]},
   {s:5,q:"我想投海外影展，需要英文片名、logline 和 synopsis。",t:["subtitle", "presskit"]},
   {s:5,q:"幫我把這部片的介紹改成影展會看的英文。",t:["subtitle"]},
-  {s:5,q:"我要做英文字幕，但不知道哪些地方要先確認。",t:["subtitle"]},
   {s:5,q:"這支影片沒有字幕，幫我聽打並做出中英字幕。",t:["other"]},
   {s:5,q:"我需要日文版社群貼文和影片簡介。",t:["subtitle", "social"]},
   {s:5,q:"這部片有台灣脈絡，英文怎麼寫外國人才看得懂？",t:["subtitle"]},
@@ -501,12 +496,6 @@ const SCENARIOS = [
   {s:6,q:"這部片放著很久了，還有沒有機會重新推？",t:["listening"]},
   {s:6,q:"我只有一支短片，可以怎麼讓它被更多人看到？",t:["report", "social"]},
   {s:6,q:"我不知道這部片的賣點在哪，可以幫我分析嗎？",t:["report"]},
-  {s:7,q:"明天就要交資料了，幫我先整理必交項目。",t:["presskit"]},
-  {s:7,q:"影展臨時要英文簡介，我現在只有中文。",t:["subtitle", "presskit"]},
-  {s:7,q:"策展人要我補劇照和導演介紹，我不知道格式。",t:["presskit"]},
-  {s:7,q:"我要寄片給對方，但信還沒寫。",t:["presskit"]},
-  {s:7,q:"報名截止前，幫我判斷這個影展值不值得投。",t:["report"]},
-  {s:7,q:"我需要一份看起來專業的 Press Kit，今天就要。",t:["presskit"]},
 ];
 
 const FILMS = [
@@ -635,8 +624,8 @@ function scenarioGrid(list, opts={}){
   return `<div class="scen-grid">${list.map(sc => `
     <button class="scen" data-scen="${SCENARIOS.indexOf(sc)}">
       <span class="stage">${STAGES[sc.s]}</span>
-      <span class="q">「${sc.q}」</span>
-      <span class="uses"><i></i>${sc.t.map(id => TOOLS[id].name).join(' · ')}</span>
+      <span class="q">${sc.q}</span>
+      <span class="uses" title="工程參考：這個情境會呼叫哪些產品，正式版可拿掉"><i></i><span style="color:var(--dim)">呼叫</span> ${sc.t.map(id => TOOLS[id].name).join(' · ')}</span>
     </button>`).join('')}</div>`;
 }
 document.addEventListener('click', e => {
