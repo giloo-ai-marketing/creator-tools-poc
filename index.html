@@ -354,7 +354,7 @@
     </button>
     <button class="nav-btn" data-go="#/skills" data-nav="skills">
       <span class="ico"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 2L4 14h7l-1 8 9-12h-7z"/></svg></span>
-      Skills <span class="sub">五個產品</span>
+      Skills <span class="sub">六個產品</span>
     </button>
     <button class="nav-btn" data-go="#/connectors" data-nav="connectors">
       <span class="ico"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 13a5 5 0 0 0 7 0l3-3a5 5 0 0 0-7-7l-1 1"/><path d="M14 11a5 5 0 0 0-7 0l-3 3a5 5 0 0 0 7 7l1-1"/></svg></span>
@@ -383,6 +383,7 @@
       <a href="#/tool/report" data-key="report">行銷策略報告 <span class="badge">New</span></a>
       <a href="#/tool/social" data-key="social">社群後台</a>
       <a href="#/tool/listening" data-key="listening">輿情分析 <span class="badge free">Beta</span></a>
+      <a href="#/tool/other" data-key="other">其他</a>
       <span class="sep"></span>
       <a href="#/projects" data-key="projects">我的片</a>
       <span class="right"><button class="icon-btn" aria-label="搜尋"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg></button></span>
@@ -433,16 +434,23 @@ const TOOLS = {
     examples:['我的片講半導體，全世界現在誰在談這件事','上串流了，觀眾都在哪裡討論？有沒有負評','舊片想重新推，最近這個議題又熱起來'],
     est:{pts:200, twd:600, why:'一個市場、90 天、四個平台', time:'約 8 分鐘'},
     resultTitle:'半導體題材 日本討論', resultTabs:['總覽','誰在談','可切入社群'] },
+  other:{ id:'other', name:'其他', short:'還沒歸類的需求', give:'把你的狀況說一遍', get:'我先幫你拆成步驟，能做的直接做，不能做的告訴你誰能', unit:'先不收費', time:'看需求',
+    asks:['你現在手上有什麼：片、素材、名單','要達成什麼，什麼時候要','有沒有預算，多少','有沒有已經在用的工具或夥伴'],
+    examples:['這支影片沒有字幕，幫我聽打並做出中英字幕','我要辦十場校園放映，幫我找學校和老師','幫我開一個報名頁並追蹤誰來了'],
+    est:{pts:0, twd:0, why:'先拆步驟不收費，實際執行時再報價', time:'看需求'},
+    resultTitle:'需求拆解', resultTabs:['步驟','能做的','要找人的'] },
 };
-const TOOL_ORDER = ['subtitle','presskit','report','social','listening'];
+const TOOL_ORDER = ['subtitle','presskit','report','social','listening','other'];
 
 const STAGES = ["影片快完成，準備對外發表", "影展入選了", "找錢、找夥伴、找買家", "宣傳與社群曝光", "上映、上架與放映", "國際化與翻譯", "片子完成後沒方向", "緊急救火"];
 const SCENARIOS = [
   {s:0,q:"片子快完成了，我想知道現在該先準備哪些資料。",t:["report", "presskit"],home:1},
   {s:0,q:"我有預告、劇照和簡介，但不知道能不能拿去投影展。",t:["report"]},
   {s:0,q:"我想投國際影展，但英文資料都還沒整理。",t:["subtitle", "presskit"],home:1},
-  {s:0,q:"片名、劇情大綱、導演介紹都還很粗，可以幫我整理成正式版本嗎？",t:["presskit"]},
-  {s:0,q:"我只有粗剪版，能先判斷適合投哪些影展嗎？",t:["report"]},
+  {s:0,q:"幫我寫導演的話、劇情簡介、logline，中英文。",t:["presskit"]},
+  {s:0,q:"幫我把預告和劇照整理成 press kit。",t:["presskit"]},
+  {s:0,q:"幫我看這部片適合投哪些影展。",t:["report"]},
+  {s:0,q:"我要投釜山，幫我準備所有東西。",t:["report", "presskit"],home:1},
   {s:0,q:"我要寄給策展人，但不知道信裡該怎麼介紹這部片。",t:["presskit", "report"]},
   {s:1,q:"入選了，但影展要我交一堆資料，我不知道從哪裡開始。",t:["presskit"],home:1},
   {s:1,q:"影展要英文劇情簡介、導演介紹和劇照說明，可以幫我整理嗎？",t:["presskit", "subtitle"]},
@@ -452,22 +460,30 @@ const SCENARIOS = [
   {s:1,q:"影展放映後反應不錯，接下來還能投哪裡？",t:["report"]},
   {s:2,q:"我想找發行或買家，但不知道該準備什麼資料。",t:["report", "presskit"],home:1},
   {s:2,q:"我需要一份 pitch deck，但現在只有影片和劇情簡介。",t:["presskit"]},
-  {s:2,q:"我想寄給串流平台或片商，幫我整理一封提案信。",t:["report", "presskit"]},
-  {s:2,q:"這部片適合找哪些國家的買家或影展？",t:["report"],home:1},
+  {s:2,q:"幫我寫一封給 sales agent 的信。",t:["report", "presskit"]},
+  {s:2,q:"幫我找這個影展會出席的買家和策展人。",t:["report"]},
+  {s:2,q:"幫我看這個補助案能不能申請、要準備什麼。",t:["other"]},
+  {s:2,q:"這部片適合找哪些國家的買家或影展？",t:["report"]},
   {s:2,q:"我想找 NGO、學校或品牌合作放映，不知道怎麼開口。",t:["listening", "presskit"]},
   {s:2,q:"我需要把這部片包裝成比較好賣的版本。",t:["report", "presskit"]},
   {s:2,q:"幫我把這部片賣到日本和北美。",t:["report", "subtitle"]},
-  {s:2,q:"我下一部片開拍了，上一部的觀眾和夥伴可以怎麼用？",t:["report", "listening"]},
+  {s:2,q:"我下一部片開拍了，上一部的觀眾和夥伴可以怎麼用？",t:["report", "listening"],home:1},
   {s:3,q:"片子要公開了，幫我排一週社群貼文。",t:["social"]},
   {s:3,q:"我想讓更多人知道這部片，但不想寫得太廣告。",t:["social"]},
   {s:3,q:"幫我從劇情裡找出最適合宣傳的角度。",t:["social", "listening"]},
   {s:3,q:"我有劇照和預告，幫我寫 IG、Facebook、Threads 文案。",t:["social"]},
   {s:3,q:"這部片議題很硬，怎麼寫才會讓一般觀眾想看？",t:["social", "listening"],home:1},
   {s:3,q:"我想做導演訪談貼文，但不知道問什麼題目。",t:["social"]},
+  {s:3,q:"幫我找會推這部片的 KOC，並準備他們可以直接用的貼文。",t:["other"],home:1},
+  {s:3,q:"幫我做一個官網或 mini site。",t:["presskit"],home:1},
+  {s:3,q:"幫我從這支影片剪出幾支一分鐘的亮點。",t:["other"]},
   {s:3,q:"有人在網路上談這部片，幫我看輿情。",t:["listening"]},
   {s:4,q:"要上映了，幫我準備 30 則社群貼文。",t:["social"]},
   {s:4,q:"我想辦特映會，需要邀請文案和活動介紹。",t:["presskit", "social"]},
-  {s:4,q:"我想找學校放映，幫我寫一封合作邀請信。",t:["presskit"]},
+  {s:4,q:"我要辦十場校園放映，幫我找學校和老師。",t:["other"],home:1},
+  {s:4,q:"幫我做一包放映工具包，讓學校自己辦得起來。",t:["other"]},
+  {s:4,q:"幫我開一個報名頁並追蹤誰來了。",t:["other"]},
+  {s:4,q:"我的片上線了，幫我看誰在看、從哪來。",t:["other"]},
   {s:4,q:"我的片要上架平台，幫我寫平台用的簡介和標籤。",t:["presskit"]},
   {s:4,q:"我想做映後座談，幫我設計主持問題。",t:["report"]},
   {s:4,q:"片子放上 YouTube 後，標題和簡介要怎麼寫？",t:["social"]},
@@ -475,6 +491,7 @@ const SCENARIOS = [
   {s:5,q:"我想投海外影展，需要英文片名、logline 和 synopsis。",t:["subtitle", "presskit"]},
   {s:5,q:"幫我把這部片的介紹改成影展會看的英文。",t:["subtitle"]},
   {s:5,q:"我要做英文字幕，但不知道哪些地方要先確認。",t:["subtitle"]},
+  {s:5,q:"這支影片沒有字幕，幫我聽打並做出中英字幕。",t:["other"]},
   {s:5,q:"我需要日文版社群貼文和影片簡介。",t:["subtitle", "social"]},
   {s:5,q:"這部片有台灣脈絡，英文怎麼寫外國人才看得懂？",t:["subtitle"]},
   {s:5,q:"幫我把 Press Kit 做成中英文版。",t:["presskit", "subtitle"]},
@@ -603,7 +620,7 @@ function bindComposer(){
     const tool = f.dataset.tool || detectTool(ta.value);
     if(ta.value.trim()){
       if(tc) tc.innerHTML = `<span class="k">Skill</span> ${TOOLS[tool].name}`;
-      est.textContent = `預估 ${TOOLS[tool].est.pts} 點 · ${TOOLS[tool].est.time}`; est.classList.remove('ghost');
+      est.textContent = TOOLS[tool].est.pts ? `預估 ${TOOLS[tool].est.pts} 點 · ${TOOLS[tool].est.time}` : '先拆步驟，不收費'; est.classList.remove('ghost');
     } else { if(tc) tc.innerHTML = `<span class="k">Skill</span> 自動判斷`; est.textContent = '預估費用 輸入後顯示'; est.classList.add('ghost'); }
   });
   ta.addEventListener('keydown', e => { if((e.metaKey||e.ctrlKey) && e.key==='Enter'){ f.requestSubmit(); } });
@@ -718,7 +735,7 @@ function renderChat(id){
       <div class="chat-top">
         <span class="chip"><span class="k">片</span> ${f.name}</span>
         <span class="chip tool"><i class="dot"></i>${t.name}</span>
-        <span class="chip"><span class="k">${s.status==='done'?'已扣':'預估'}</span> <span class="num">${t.est.pts} 點</span>${s.status==='done'?'':' <span class="k">· 完成後才扣</span>'}</span>
+        ${t.est.pts ? `<span class="chip"><span class="k">${s.status==='done'?'已扣':'預估'}</span> <span class="num">${t.est.pts} 點</span>${s.status==='done'?'':' <span class="k">· 完成後才扣</span>'}</span>` : `<span class="chip"><span class="k">費用</span> 不收費</span>`}
         ${stTxt}
       </div>
       <div class="msgs" id="msgs">${s.msgs.map(m => renderMsg(m, s)).join('')}</div>
@@ -753,6 +770,7 @@ function intakeCard(tool, s){
     social:`好，用<b>社群後台</b>來做。我有《${f.name}》的預告，先確認這波要推什麼、發在哪裡，再決定剪幾則。`,
     presskit:`好，用<b>官網與 Press Kit</b>來做。《${f.name}》的片介和劇照我先帶進來了，先確認這頁是給誰看的。`,
     listening:`好，用<b>輿情分析</b>來做。先確認關鍵字和市場，我就去抓。`,
+    other:`好，這個需求現在還沒有專屬的產品。我先把它拆成步驟，能用現有五個產品做的我直接做，做不到的告訴你要找誰。先確認三件事。`,
   }[tool];
   const sec = (n, title, inner) => `<div class="card-sec"><div class="step"><span class="n">${n}</span>${title}</div>${inner}</div>`;
   let secs = '';
@@ -772,6 +790,10 @@ function intakeCard(tool, s){
     secs = sec(1,'這頁給誰看',`<div class="opts"><button type="button" class="opt-big on"><b>策展人私下看片</b>密碼、浮水印、限次觀看</button><button type="button" class="opt-big"><b>公開宣傳頁</b>預告、場次、購票</button></div>`)
       + sec(2,'內容',`<div class="check"><div><i>✓</i>片介與導演的話（中英）</div><div><i>✓</i>劇照 24 張，挑 6 張</div><div><i>✓</i>影展紀錄</div><div class="todo"><i>?</i>正片：要放嗎，誰能看</div></div>`)
       + sec(3,'網址與密碼',`<div class="opts"><span class="opt num">giloo.ist/f/chip-odyssey</span><span class="opt">密碼自動產生，可改</span></div>`);
+  } else if(tool === 'other'){
+    secs = sec(1,'你手上有什麼',`<div class="opts"><label class="opt on"><input type="checkbox" checked> 正片</label><label class="opt on"><input type="checkbox" checked> 預告</label><label class="opt"><input type="checkbox"> 劇照</label><label class="opt"><input type="checkbox"> 觀眾名單</label><label class="opt"><input type="checkbox"> 放映夥伴</label></div>`)
+      + sec(2,'要達成什麼',`<div class="field"><label for="goal">用一句話說</label><textarea id="goal" rows="2">${esc(s.msgs[0].text)}</textarea></div><div class="opts"><span class="opt">什麼時候要 <b style="margin-left:6px">兩週內</b></span></div>`)
+      + sec(3,'預算',`<div class="opts"><button type="button" class="opt-big on"><b>還沒有預算</b>先看要花多少</button><button type="button" class="opt-big"><b>有預算</b>告訴我上限</button></div>`);
   } else {
     secs = sec(1,'關鍵字',`<div class="opts"><span class="opt on">造山者</span><span class="opt on">A Chip Odyssey</span><span class="opt on">半導體 紀錄片</span><span class="opt on">台積電</span><span class="opt">+ 加關鍵字</span></div>`)
       + sec(2,'市場與語言',`<div class="opts"><label class="opt on"><input type="checkbox" checked> 日本 · 日文</label><label class="opt"><input type="checkbox"> 北美 · 英文</label><label class="opt"><input type="checkbox"> 台灣 · 中文</label></div>`)
@@ -779,7 +801,7 @@ function intakeCard(tool, s){
   }
   return `<p>${intro}</p><div class="card">${secs}
     <div class="card-foot">
-      <div class="est"><b class="num">${t.est.pts} 點</b> <span class="num">約 NT$ ${t.est.twd.toLocaleString()}</span><small>${t.est.why}。${t.est.time}完成，完成後才扣點。</small></div>
+      <div class="est">${t.est.pts ? `<b class="num">${t.est.pts} 點</b> <span class="num">約 NT$ ${t.est.twd.toLocaleString()}</span>` : `<b>不收費</b>`}<small>${t.est.why}。${t.est.time}完成${t.est.pts?'，完成後才扣點':''}。</small></div>
       <span class="spacer"></span>
       <button type="button" class="btn">先問問題</button>
       <button type="button" class="btn primary" data-start="1">開始</button>
@@ -794,6 +816,7 @@ function confirmedCard(tool, s){
     social:`素材 <b>預告 v3</b> · 主題 <b>影展入選</b> · <b>Instagram Reels、Threads</b> · 3 則中英雙語`,
     presskit:`<b>策展人私下看片</b> · 密碼、浮水印、限看一次 · 片介、6 張劇照、影展紀錄 · <b>giloo.ist/f/chip-odyssey</b>`,
     listening:`關鍵字 <b>造山者、半導體紀錄片、台積電</b> · <b>日本 · 日文</b> · 最近 90 天`,
+    other:`目標 <b>${esc(s.msgs[0].text)}</b> · 手上有 <b>正片、預告</b> · 兩週內 · 還沒有預算`,
   }[tool];
   return `<div class="confirmed"><span class="ok">已確認</span><span>${line}</span></div>`;
 }
@@ -804,6 +827,7 @@ const STEPS = {
   social:['看預告，找 3 個鉤子','剪 3 支直式片段','寫中英文案','排發文時間'],
   presskit:['整理片介與導演的話','挑 6 張劇照','建看片頁，加浮水印與密碼','產出 Press Kit PDF'],
   listening:['抓日本四個平台 90 天資料','分群：誰在談','找可切入的社群','寫總覽'],
+  other:['讀你的需求','對照現有五個產品','拆成步驟','標出要找人的部分'],
 };
 function progressCard(m){
   return `<div class="progress">${STEPS[m.tool].map((st,i) => `<div class="row ${i<m.at?'done':i===m.at?'now':''}"><i></i>${st}</div>`).join('')}</div>`;
@@ -826,6 +850,9 @@ function resultMsg(tool, s){
     listening:{ text:'抓好了，右邊是總覽。<b>日本過去 90 天談半導體紀錄片的討論量漲了 38%</b>，主要在 X 和 note，談的人多半是科技記者和半導體從業者，不是影迷。這對你是好消息，觀眾在別的地方。',
       qs:['要不要把「TSMC 熊本」加進關鍵字？熊本廠的討論量很大，但不一定跟片有關。'],
       next:[['report','照這個結果重排市場優先序 · 600 點'],['social','針對科技社群寫三則貼文 · 120 點']] },
+    other:{ text:'拆好了，右邊可以看。<b>這個需求有一半可以用現有產品做，另一半要找人。</b>能做的我列了順序，要找人的我寫了要找誰、怎麼開口。',
+      qs:['這個需求常見嗎？如果很多導演都有，我們會把它做成一個正式的產品。'],
+      next:[['report','先做能做的那一半 · 600 點'],['presskit','把要寄給人的東西整理成一頁 · 300 點']] },
   }[tool];
   return `<p>${r.text}</p>
     <div class="qs">${r.qs.map(q => `<div><span>?</span><span>${q}</span></div>`).join('')}</div>
@@ -874,7 +901,7 @@ function renderPanel(s){
   const t = TOOLS[s.tool]; const f = FILMS.find(x => x.id === s.film);
   const head = `<div class="panel-top"><b>${t.resultTitle.replace('造山者', f.name)}</b><span class="ver">v1</span></div>`;
   if(s.status !== 'done'){
-    const files = { subtitle:[`${f.name}_en.srt`,`${f.name}_ja.srt`,'校對報告：低信心句、專有名詞'], report:['摘要與市場優先序','相似片 3 部','買家與影展名單','下一步與預算配置'], social:['Reels × 3（9:16）','中英文案 × 3','發文排程'], presskit:['看片頁（密碼、浮水印）','Press Kit PDF 中英','觀看紀錄'], listening:['討論量總覽','誰在談','可切入的社群'] }[s.tool];
+    const files = { subtitle:[`${f.name}_en.srt`,`${f.name}_ja.srt`,'校對報告：低信心句、專有名詞'], report:['摘要與市場優先序','相似片 3 部','買家與影展名單','下一步與預算配置'], social:['Reels × 3（9:16）','中英文案 × 3','發文排程'], presskit:['看片頁（密碼、浮水印）','Press Kit PDF 中英','觀看紀錄'], listening:['討論量總覽','誰在談','可切入的社群'], other:['步驟','能做的','要找人的'] }[s.tool];
     return `<div class="panel-top"><b>產出</b><span class="ver">${f.name} · ${t.name}</span></div>
       <div class="panel-empty"><p style="margin:0">開始後，結果會出現在這裡。你可以逐項核對，改完再下載或存回片。</p>
       <div class="list">${files.map(x => `<div class="file"><i></i>${x}</div>`).join('')}</div>
@@ -952,6 +979,20 @@ const PANELS = {
       <div class="row-item"><span class="g"><b>紀錄片影迷</b><br><span style="font-size:12px;color:var(--muted)">量小但轉發率最高</span></span><span class="pill">9%</span></div>
     </div>
     <div class="note">範例數字，用來示範版面。實際資料來自平台 API 與抓取，更新日期會標在這裡。</div>`,
+  other: f => `
+    <div class="blk"><div class="lb">步驟</div>
+      <div class="rank"><span class="n">1</span><div><b>先把手上的東西整理好</b><p>正片、預告、片介進「我的片」，之後每一步都從這裡拿。</p></div></div>
+      <div class="rank two"><span class="n">2</span><div><b>能用現有產品做的先做</b><p>右邊「能做的」分頁。做完會存回這部片。</p></div></div>
+      <div class="rank two"><span class="n">3</span><div><b>要找人的部分，我幫你寫第一封信</b><p>誰、為什麼是他、怎麼開口。信由你寄。</p></div></div>
+    </div>
+    <div class="blk"><div class="lb">能做的</div>
+      <div class="row-item"><span class="g">用行銷策略報告找對象</span><span class="pill ok">現有產品</span></div>
+      <div class="row-item"><span class="g">用官網與 Press Kit 做一頁給對方看</span><span class="pill ok">現有產品</span></div>
+    </div>
+    <div class="blk"><div class="lb">要找人的</div>
+      <div class="row-item"><span class="g">還沒有產品能做這段。我記下來了，如果很多人都問，會變成新的產品。</span><span class="pill warn">人工</span></div>
+    </div>
+    <div class="note">「其他」是收集箱。放在這裡的需求都會被記錄，用來決定下一個要做的產品。</div>`,
 };
 
 /* =========================================================
@@ -959,14 +1000,14 @@ const PANELS = {
    ========================================================= */
 function renderSkills(){
   view.innerHTML = `<div class="page">
-    <div class="section-h"><h2 style="font-size:24px">Skills</h2><span class="d">五個產品，每一個都是獨立頁面，也都能在對話裡直接叫</span></div>
+    <div class="section-h"><h2 style="font-size:24px">Skills</h2><span class="d">六個產品，每一個都是獨立頁面，也都能在對話裡直接叫。「其他」是收集箱</span></div>
     <div class="list">${TOOL_ORDER.map(id => { const t = TOOLS[id]; return `
       <button class="list-item" data-go="#/tool/${id}" style="text-align:left;color:inherit">
         <span class="ico" style="background:var(--accent-dim);color:var(--accent)">${ICONS[id]}</span>
         <span class="g"><b>${t.name}</b><span>${t.give} → ${t.get}</span></span>
         <span class="pill num">${t.unit}</span><span class="arr" style="color:var(--dim)">${ICONS.arr}</span>
       </button>`;}).join('')}</div>
-    <div class="note">在對話框打 <span class="num">/</span> 也會跳出這五個。自動判斷的時候，系統會從你的句子猜要用哪一個，猜錯可以改。</div>
+    <div class="note">在對話框打 <span class="num">/</span> 也會跳出這六個。自動判斷的時候，系統會從你的句子猜要用哪一個，猜錯可以改。</div>
   </div>`;
 }
 function renderConnectors(){
