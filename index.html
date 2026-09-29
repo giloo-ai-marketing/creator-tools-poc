@@ -299,6 +299,28 @@
   .status p{margin:0;font-size:12px;color:var(--muted);line-height:1.6;flex-grow:1}
   .status .btn{width:100%;justify-content:center}
 
+  /* ---------- assets ---------- */
+  .drop{border:1.5px dashed var(--line-2);border-radius:var(--radius);background:var(--surface);padding:20px 22px;display:flex;align-items:center;gap:16px;flex-wrap:wrap;cursor:pointer;transition:border-color .15s,background .15s}
+  .drop:hover{border-color:#4A4641}
+  .drop.over{border-color:var(--accent);background:var(--accent-dim)}
+  .drop .di{width:44px;height:44px;border-radius:12px;background:var(--surface-3);color:var(--muted);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+  .drop.over .di{background:var(--accent);color:#fff}
+  .drop .dt{flex:1 1 220px;min-width:0;display:flex;flex-direction:column;gap:3px}
+  .drop .dt b{font-size:15px}
+  .drop .dt span{font-size:12.5px;color:var(--muted);line-height:1.6}
+  .asset-list{display:flex;flex-direction:column;gap:20px}
+  .asset-group{display:flex;flex-direction:column;gap:8px}
+  .asset-head{display:flex;align-items:baseline;gap:10px;font-size:13px;font-weight:700}
+  .asset-head span{font-size:11px;color:var(--dim);font-weight:400}
+  .asset-row{display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:10px;background:var(--surface);border:1px solid var(--line)}
+  .asset-row .fi{width:36px;height:36px;border-radius:10px;background:var(--surface-3);color:var(--muted);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+  .asset-row.up .fi{color:var(--accent)}
+  .asset-row .g{flex-grow:1;min-width:0;display:flex;flex-direction:column;gap:2px}
+  .asset-row .g b{font-weight:500;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:block}
+  .asset-row .g em{font-style:normal;font-size:12px;color:var(--muted)}
+  .bar-mini{height:4px;border-radius:2px;background:var(--surface-3);overflow:hidden;margin-top:6px}
+  .bar-mini i{display:block;height:100%;background:var(--accent);border-radius:2px;transition:width .2s}
+
   .sr-only{position:absolute;left:-9999px}
   .backdrop{display:none}
 
@@ -338,6 +360,7 @@
 
 <div class="shell">
   <div class="backdrop" id="backdrop"></div>
+  <input type="file" id="filePicker" class="sr-only" multiple accept="video/*,image/*,.srt,.vtt,.ass,.pdf,.zip,.docx">
   <aside class="sidebar" id="sidebar" aria-label="主選單">
     <div class="brand">
       <div class="brand-mark"></div>
@@ -351,6 +374,10 @@
     <button class="nav-btn" data-go="#/projects" data-nav="projects">
       <span class="ico"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 7h18v13H3zM3 7l2-3h14l2 3"/></svg></span>
       Projects <span class="sub">我的片</span>
+    </button>
+    <button class="nav-btn" data-go="#/assets" data-nav="assets">
+      <span class="ico"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 15V4M8 8l4-4 4 4"/><path d="M4 15v4a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-4"/></svg></span>
+      資產 <span class="sub" id="assetCount">檔案</span>
     </button>
     <button class="nav-btn" data-go="#/skills" data-nav="skills">
       <span class="ico"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 2L4 14h7l-1 8 9-12h-7z"/></svg></span>
@@ -406,6 +433,10 @@ const ICONS = {
   send:'<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 19V5M5 12l7-7 7 7"/></svg>',
   arr:'<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 6l6 6-6 6"/></svg>',
   plus:'<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>',
+  upload:'<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 15V4M8 8l4-4 4 4"/><path d="M4 15v4a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-4"/></svg>',
+  film:'<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M8 4v16M16 4v16M3 10h18M3 14h18"/></svg>',
+  img:'<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="9" cy="10" r="2"/><path d="M21 16l-5-5-6 6"/></svg>',
+  sub:'<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M7 15h10M7 11h6"/></svg>',
 };
 
 const TOOLS = {
@@ -527,6 +558,112 @@ let credits = 1240;
 try{ const c = localStorage.getItem('giloo-poc-credits'); if(c) credits = +c; }catch(e){}
 function saveCredits(){ try{ localStorage.setItem('giloo-poc-credits', credits); }catch(e){} document.getElementById('creditsV').innerHTML = credits.toLocaleString()+' <span>credits</span>'; }
 function saveSessions(){ store.set(sessions); renderChatList(); }
+
+/* ---------- 資產 ---------- */
+const SEED_ASSETS = [
+  {id:'s1', film:'chip',   name:'造山者_正片_v7.mp4',     kind:'video', size:'4.2 GB', dur:'95:12', st:'ready', pct:100},
+  {id:'s2', film:'chip',   name:'造山者_預告_v3.mp4',     kind:'video', size:'382 MB', dur:'2:10',  st:'ready', pct:100},
+  {id:'s3', film:'chip',   name:'造山者_zh-TW_final.srt', kind:'sub',   size:'88 KB',               st:'ready', pct:100},
+  {id:'s4', film:'chip',   name:'造山者_劇照_24張.zip',   kind:'img',   size:'216 MB',              st:'ready', pct:100},
+  {id:'s5', film:'temple', name:'神壇與帳篷_預告_v1.mov', kind:'video', size:'1.1 GB', dur:'1:48',  st:'ready', pct:100},
+  {id:'s6', film:'panico', name:'惡魔的愛_片花.mp4',      kind:'video', size:'640 MB', dur:'0:58',  st:'ready', pct:100},
+];
+let assets = SEED_ASSETS;
+try{ const a = JSON.parse(localStorage.getItem('giloo-poc-assets')||'null'); if(Array.isArray(a)) assets = a; }catch(e){}
+function saveAssets(){ try{ localStorage.setItem('giloo-poc-assets', JSON.stringify(assets)); }catch(e){} }
+const KIND = { video:{ico:'film',lb:'影片'}, img:{ico:'img',lb:'圖'}, sub:{ico:'sub',lb:'字幕'}, doc:{ico:'file',lb:'文件'} };
+function kindOf(name){
+  const e = (name.split('.').pop()||'').toLowerCase();
+  if(['mp4','mov','mkv','avi','m4v','webm','mxf'].includes(e)) return 'video';
+  if(['jpg','jpeg','png','gif','webp','heic','tif','zip'].includes(e)) return 'img';
+  if(['srt','vtt','ass','sbv'].includes(e)) return 'sub';
+  return 'doc';
+}
+function fmtSize(b){ if(b<1024) return b+' B'; if(b<1048576) return (b/1024).toFixed(0)+' KB'; if(b<1073741824) return (b/1048576).toFixed(1)+' MB'; return (b/1073741824).toFixed(1)+' GB'; }
+function updateAssetCount(){ const el = document.getElementById('assetCount'); if(el) el.textContent = assets.length + ' 個檔案'; }
+function refreshAssetViews(){
+  updateAssetCount();
+  const l = document.getElementById('assetList'); if(l) l.innerHTML = assetListHTML();
+  const h = document.getElementById('homeAssets'); if(h) h.innerHTML = homeAssetList();
+}
+let pickFilm = 'chip';
+function openPicker(film){ pickFilm = film || 'chip'; document.getElementById('filePicker').click(); }
+document.getElementById('filePicker').addEventListener('change', e => { addFiles(e.target.files, pickFilm); e.target.value = ''; });
+function addFiles(fileList, film){
+  const arr = Array.from(fileList || []); if(!arr.length) return;
+  arr.forEach(f => {
+    const a = { id: uid(), film: film || 'chip', name: f.name, kind: kindOf(f.name), size: fmtSize(f.size), st:'up', pct:0 };
+    assets.unshift(a); simulateUpload(a);
+  });
+  saveAssets(); refreshAssetViews();
+}
+function simulateUpload(a){
+  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if(reduce){ a.st='ready'; a.pct=100; saveAssets(); refreshAssetViews(); return; }
+  const step = () => {
+    a.pct = Math.min(100, a.pct + 10 + Math.random()*20);
+    if(a.pct >= 100){ a.pct = 100; a.st = 'ready'; saveAssets(); refreshAssetViews(); }
+    else { saveAssets(); refreshAssetViews(); setTimeout(step, 220); }
+  };
+  setTimeout(step, 220);
+}
+function dropZone(film){
+  film = film || 'chip';
+  return `<div class="drop" data-film="${film}">
+    <span class="di">${ICONS.upload}</span>
+    <div class="dt"><b>把影片拖進來，或點一下選檔案</b><span>正片、預告、字幕檔、劇照都可以。上傳後會放進「資產」，每個產品都能直接取用，不用重傳。</span></div>
+    <label class="chip" data-stop="1"><span class="k">歸到</span><select class="filmPick">${FILMS.map(f => `<option value="${f.id}" ${f.id===film?'selected':''}>${f.name}</option>`).join('')}</select></label>
+    <button type="button" class="btn primary">選擇檔案</button>
+  </div>`;
+}
+function bindDrop(){
+  view.querySelectorAll('.drop').forEach(d => {
+    d.addEventListener('click', e => { if(e.target.closest('[data-stop]')) return; openPicker(d.dataset.film); });
+    const sel = d.querySelector('.filmPick');
+    if(sel) sel.addEventListener('change', () => { d.dataset.film = sel.value; });
+    ['dragenter','dragover'].forEach(t => d.addEventListener(t, e => { e.preventDefault(); d.classList.add('over'); }));
+    ['dragleave','dragend'].forEach(t => d.addEventListener(t, e => { e.preventDefault(); d.classList.remove('over'); }));
+    d.addEventListener('drop', e => { e.preventDefault(); d.classList.remove('over'); addFiles(e.dataTransfer.files, d.dataset.film); });
+  });
+}
+function assetRow(a){
+  const f = FILMS.find(x => x.id === a.film);
+  const meta = [KIND[a.kind].lb, a.size, a.dur, f ? f.name : '未歸片'].filter(Boolean).join(' · ');
+  return `<div class="asset-row ${a.st==='up'?'up':''}">
+    <span class="fi">${ICONS[KIND[a.kind].ico]}</span>
+    <span class="g"><b>${esc(a.name)}</b><em>${meta}</em>${a.st==='up'?`<span class="bar-mini"><i style="width:${a.pct}%"></i></span>`:''}</span>
+    ${a.st==='up' ? `<span class="pill num">${Math.round(a.pct)}%</span>` : `<span class="pill ok">可使用</span>`}
+  </div>`;
+}
+function assetListHTML(){
+  if(!assets.length) return `<div class="note">還沒有檔案。把影片拖到上面那一塊，或點一下選檔案。</div>`;
+  const by = {}; assets.forEach(a => { (by[a.film] = by[a.film] || []).push(a); });
+  return Object.keys(by).map(fid => {
+    const f = FILMS.find(x => x.id === fid);
+    return `<div class="asset-group">
+      <div class="asset-head">${f ? f.name : '未歸片'} <span>${by[fid].length} 個檔案</span></div>
+      <div class="list">${by[fid].map(assetRow).join('')}</div>
+    </div>`;
+  }).join('');
+}
+function homeAssetList(){
+  if(!assets.length) return `<div class="note">資產區還是空的。上傳第一支影片，我才有東西可以看、可以剪、可以上字幕。</div>`;
+  return `<div class="list">${assets.slice(0,3).map(assetRow).join('')}</div>
+    <button class="link-btn" data-go="#/assets" style="align-self:flex-start;padding-left:0">看全部 ${assets.length} 個檔案 →</button>`;
+}
+function renderAssets(){
+  const vids = assets.filter(a => a.kind === 'video').length;
+  view.innerHTML = `<div class="page">
+    <div class="section-h"><h2 style="font-size:24px">資產</h2><span class="d">上傳的正片、預告、字幕、劇照都在這裡，所有產品共用同一份</span></div>
+    ${dropZone('chip')}
+    <section class="blk">
+      <div class="section-h"><h2>全部檔案</h2><span class="d">${assets.length} 個，其中 ${vids} 支影片</span></div>
+      <div id="assetList" class="asset-list">${assetListHTML()}</div>
+    </section>
+    <div class="note">POC 說明：這裡的上傳是前端模擬，檔案只記在這台瀏覽器，重新整理還在，換一台電腦就沒有。正式版會存到 Giloo 雲，每個使用者各自隔離。</div>
+  </div>`;
+  bindDrop();
+}
 const uid = () => Math.random().toString(36).slice(2,9);
 const esc = s => String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 
@@ -561,6 +698,7 @@ function route(){
   document.querySelectorAll('#topnav a').forEach(el => el.classList.toggle('on', el.dataset.key === key));
   if(a === 'tool' && TOOLS[b]) renderTool(b);
   else if(a === 'chat' && sessions.find(s => s.id === b)) renderChat(b);
+  else if(a === 'assets') renderAssets();
   else if(a === 'skills') renderSkills();
   else if(a === 'connectors') renderConnectors();
   else if(a === 'projects') renderProjects();
@@ -591,7 +729,7 @@ function composer({tool='', film='chip', placeholder, lockTool=false}={}){
     <label class="sr-only" for="ask">輸入需求</label>
     <textarea id="ask" rows="2" placeholder="${esc(placeholder||'例如：幫《造山者》做英文和日文字幕，要投東京的影展')}"></textarea>
     <div class="composer-row">
-      <button type="button" class="icon-btn" aria-label="加入檔案" style="width:34px;height:34px">${ICONS.plus}</button>
+      <button type="button" class="icon-btn" id="addFile" aria-label="加入檔案" style="width:34px;height:34px">${ICONS.plus}</button>
       <label class="chip"><span class="k">片</span><select id="filmSel">${filmOpts}</select></label>
       ${tool ? `<span class="chip tool"><i class="dot"></i>${TOOLS[tool].name}</span>` : `<span class="chip" id="toolChip"><span class="k">Skill</span> 自動判斷</span>`}
       <span class="chip ghost" id="estChip">預估費用 輸入後顯示</span>
@@ -612,6 +750,8 @@ function bindComposer(){
       est.textContent = TOOLS[tool].est.pts ? `預估 ${TOOLS[tool].est.pts} 點 · ${TOOLS[tool].est.time}` : '先拆步驟，不收費'; est.classList.remove('ghost');
     } else { if(tc) tc.innerHTML = `<span class="k">Skill</span> 自動判斷`; est.textContent = '預估費用 輸入後顯示'; est.classList.add('ghost'); }
   });
+  const add = f.querySelector('#addFile');
+  if(add) add.addEventListener('click', () => openPicker(f.querySelector('#filmSel').value));
   ta.addEventListener('keydown', e => { if((e.metaKey||e.ctrlKey) && e.key==='Enter'){ f.requestSubmit(); } });
   f.addEventListener('submit', e => {
     e.preventDefault();
@@ -647,6 +787,11 @@ function renderHome(){
       ${composer()}
     </section>
     <section class="blk">
+      <div class="section-h"><h2>上傳影片</h2><span class="d">檔案放進資產區，每個產品都能直接取用</span></div>
+      ${dropZone('chip')}
+      <div id="homeAssets" style="display:flex;flex-direction:column;gap:10px">${homeAssetList()}</div>
+    </section>
+    <section class="blk">
       <div class="tabs">
         <button class="${homeTab<0?'on':''}" data-tab="-1">常見</button>
         ${STAGES.map((s,i) => `<button class="${homeTab===i?'on':''}" data-tab="${i}">${s}</button>`).join('')}
@@ -659,7 +804,7 @@ function renderHome(){
       ${['首映在東京，要日文字幕和日文貼文','有跟我類似的片嗎？他們怎麼賣出去的','片子講原住民議題，有沒有 NGO 或大學會想放','影展跑完了，權利還在我手上，片子放著沒人看'].map(q => `<button data-fill="${esc(q)}">${q}</button>`).join('')}
     </section>
   </div>`;
-  bindComposer();
+  bindComposer(); bindDrop();
   view.querySelectorAll('[data-tab]').forEach(b => b.addEventListener('click', () => { homeTab = +b.dataset.tab; renderHome(); }));
   view.querySelectorAll('[data-pick]').forEach(b => b.addEventListener('click', () => {
     const f = document.getElementById('composer'); const on = f.dataset.tool === b.dataset.pick;
@@ -1029,7 +1174,8 @@ function renderFilm(id){
         <div style="display:flex;align-items:baseline;gap:12px;flex-wrap:wrap"><h1>${f.name}</h1><span style="color:var(--muted)">${f.en} · ${f.year} · 紀錄片 · ${f.dur} 分</span></div>
         <div class="tags"><span class="pill" style="background:var(--accent-dim);color:var(--text)">${f.status}</span><span class="pill">目標：${f.markets}</span><span class="pill">上映：${f.release}</span></div>
         <div class="blk"><div class="lb">基本資料，五個產品共用，只填一次</div>
-          <div class="tags">${f.assets.map(([n,ok]) => `<span class="pill ${ok?'ok':'warn'}">${ok?'✓':'!'} ${n}</span>`).join('')}</div></div>
+          <div class="tags">${f.assets.map(([n,ok]) => `<span class="pill ${ok?'ok':'warn'}">${ok?'✓':'!'} ${n}</span>`).join('')}</div>
+          <div><button class="btn sm" data-go="#/assets">${ICONS.upload} 上傳或管理這部片的檔案</button></div></div>
       </div>
       <button class="btn primary" data-go="#/">${ICONS.plus} 為這部片開新對話</button>
     </section>
@@ -1060,6 +1206,7 @@ function renderChatList(){
 
 /* ---------- boot ---------- */
 saveCredits();
+updateAssetCount();
 route();
 </script>
 
